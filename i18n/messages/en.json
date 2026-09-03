@@ -17,7 +17,9 @@
     "explore": "Explore",
     "activity": "My Activity",
     "profile": "Profile",
-    "myJobs": "My Jobs"
+    "myJobs": "My Jobs",
+    "exploreWorkers": "Talent",
+    "admin": "Admin"
   },
   "activity": {
     "appliedOn": "Applied {{date}}",
@@ -130,6 +132,10 @@
     "cancel": "Cancel",
     "companyProfile": "Company Profile",
     "companyProfileSubtitle": "Edit your company's public details",
+    "billing": {
+      "title": "Billing",
+      "subtitle": "View plans and manage your subscription"
+    },
     "editProfile": {
       "title": "Edit Profile",
       "subtitle": "Name, bio, location, phone, LinkedIn",
@@ -165,7 +171,30 @@
       "confirmRemoveSkillMessage": "You can add it again later if you change your mind.",
       "confirmDeleteTitle": "Delete this entry?",
       "confirmDeleteMessage": "This can't be undone."
-    }
+    },
+    "notifications": {
+      "title": "Notifications",
+      "subtitle": "Job alerts and updates",
+      "permissionDenied": "Notification permission was denied. You can enable it in your device settings.",
+      "error": "Couldn't update your notification settings. Please try again."
+    },
+    "language": "Language",
+    "privacyPolicy": {
+      "title": "Privacy Policy",
+      "subtitle": "How we protect your data",
+      "body": "Brújula collects the information you provide (profile details, resume, work experience) to connect job seekers with employers on this platform. We do not sell your data to third parties. Your contact information is only shared with employers you apply to. You can request deletion of your account and data at any time from this screen.\n\nThis is placeholder text for the MVP and has not been reviewed by legal counsel — replace it with a real privacy policy before a public launch."
+    },
+    "deleteAccount": "Delete Account",
+    "deleteAccountConfirmTitle": "Delete your account?",
+    "deleteAccountConfirmMessage": "This permanently deletes your account and all your data. This can't be undone.",
+    "deleteAccountError": "Couldn't delete your account. If you're an employer, delete or transfer your company profile(s) first."
+  },
+  "companyView": {
+    "title": "Company",
+    "error": "Couldn't load this company.",
+    "about": "About",
+    "industry": "Industry",
+    "size": "Company size"
   },
   "jobStatus": {
     "draft": "Draft",
@@ -185,7 +214,40 @@
     "noCompanySubtitle": "You'll need a company profile before you can post a job.",
     "createCompany": "Create company profile",
     "noJobs": "No jobs posted yet.",
-    "postJob": "Post a job"
+    "postJob": "Post a job",
+    "limitReachedTitle": "Plan limit reached",
+    "limitReachedMessage": "You've reached your plan's active job post limit. Upgrade to post more.",
+    "upgrade": "Upgrade"
+  },
+  "billing": {
+    "title": "Billing",
+    "currentPlanLabel": "Current plan",
+    "renewsOn": "Renews {{date}}",
+    "manageSubscription": "Manage subscription",
+    "upgradeTo": "Upgrade to {{plan}}",
+    "processing": "Processing — this can take a moment to update.",
+    "checkoutError": "Couldn't start checkout. Please try again.",
+    "portalError": "Couldn't open the billing portal. Please try again.",
+    "tiers": {
+      "free": {
+        "name": "Free",
+        "price": "Free",
+        "feature1": "Up to 2 active job posts",
+        "feature2": "No candidate search"
+      },
+      "basic": {
+        "name": "Basic",
+        "price": "$3/month",
+        "feature1": "Up to 10 active job posts",
+        "feature2": "Candidate search"
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "$7/month",
+        "feature1": "Unlimited active job posts",
+        "feature2": "Candidate search"
+      }
+    }
   },
   "companyProfile": {
     "title": "Company Profile",
@@ -213,6 +275,7 @@
     "editTitle": "Edit job",
     "requiredFields": "Title and description are required.",
     "noCompany": "Create a company profile before posting a job.",
+    "invalidSalary": "Salary min/max must be valid numbers.",
     "saveError": "Couldn't save this job. Please try again.",
     "confirmDeleteTitle": "Delete this job?",
     "confirmDeleteMessage": "This can't be undone.",
@@ -252,5 +315,98 @@
     "viewLinkedin": "View LinkedIn profile",
     "skills": "Skills",
     "experience": "Work Experience"
+  },
+  "exploreWorkers": {
+    "title": "Explore Talent",
+    "subtitle": "Browse job seekers and filter by the skills your company needs.",
+    "searchPlaceholder": "Search by name or bio",
+    "error": "Couldn't load workers.",
+    "empty": "No workers match your search yet.",
+    "upgradeTitle": "Candidate search is a paid feature",
+    "upgradeMessage": "Upgrade to Basic or Pro to search and browse candidate profiles.",
+    "upgradeButton": "Upgrade"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "empty": "You're all caught up.",
+    "error": "Couldn't load notifications. Pull to retry."
+  },
+  "admin": {
+    "companies": {
+      "title": "Companies",
+      "searchPlaceholder": "Search by company name",
+      "verified": "Verified",
+      "unverified": "Not verified",
+      "verify": "Verify",
+      "unverify": "Unverify",
+      "empty": "No companies match that search.",
+      "error": "Couldn't update this company. Please try again."
+    },
+    "users": {
+      "title": "Users",
+      "searchPlaceholder": "Search by email",
+      "notFound": "No account found with that email.",
+      "orphanedTitle": "Orphaned signup",
+      "orphanedMessage": "This email exists in the auth system but has no local profile — signup succeeded but the profile row was never created. Cleaning it up frees the email to sign up again.",
+      "cleanup": "Clean up orphaned signup",
+      "cleanedUp": "Cleaned up. This email can now be used to sign up again.",
+      "cancel": "Cancel",
+      "confirmCleanupTitle": "Delete this orphaned account?",
+      "confirmCleanupMessage": "This permanently removes the dangling auth account. Only do this if you've confirmed there's no local profile for it.",
+      "roleUpdated": "Role updated.",
+      "error": "Something went wrong. Please try again."
+    }
+  },
+  "about": {
+    "title": "About Brújula",
+    "linkTitle": "About Brújula",
+    "linkSubtitle": "Our mission and values",
+    "tagline": "Your professional true north.",
+    "mission": "Brújula connects Cuban talent with real opportunity — structured applications instead of a post that disappears in a WhatsApp group, verified employers instead of anonymous listings.",
+    "values": {
+      "clearDirection": {
+        "title": "Clear direction",
+        "body": "Real application status — pending, reviewed, accepted — not a post lost in a group chat."
+      },
+      "verifiedTrust": {
+        "title": "Verified trust",
+        "body": "Real company profiles, verified emails. You know who's posting, not just what's posted."
+      },
+      "builtForCuba": {
+        "title": "Built for Cuba",
+        "body": "CUP, MLC, and USD live side by side. Subscription pricing built for what things actually cost here, not imported from Silicon Valley."
+      },
+      "openDoors": {
+        "title": "Open doors",
+        "body": "Local and remote work in the same place — you shouldn't have to choose between staying or leaving to find opportunity."
+      }
+    }
+  },
+  "onboarding": {
+    "skip": "Skip for now",
+    "continue": "Continue",
+    "finish": "Finish",
+    "employeeWelcomeTitle": "Welcome to Brújula!",
+    "employeeWelcomeSubtitle": "Let's set up your profile so employers can find you.",
+    "employerWelcomeTitle": "Welcome to Brújula!",
+    "employerWelcomeSubtitle": "Let's get your company set up so you can start posting jobs.",
+    "skillsTitle": "What do you do?",
+    "skillsSubtitle": "Pick a few skills or job titles that describe you.",
+    "skillsSearchPlaceholder": "Search skills",
+    "addCustomSkillPlaceholder": "Type your own skill",
+    "add": "Add",
+    "addSkillError": "Couldn't add that skill. Please try again.",
+    "cvTitle": "Add your CV",
+    "cvSubtitle": "Employers can view this when you apply to a job.",
+    "cvUploaded": "CV uploaded",
+    "uploadCv": "Upload CV",
+    "uploadError": "Couldn't upload your file. Please try again.",
+    "verifyTitle": "Verify your email",
+    "verifySubtitle": "You'll need a verified email before creating a company.",
+    "checkAgain": "I've verified — check again",
+    "companyTitle": "Create your company",
+    "companySubtitle": "This is what job seekers will see.",
+    "finishError": "Something went wrong. Please try again."
   }
 }

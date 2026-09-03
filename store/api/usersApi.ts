@@ -1,6 +1,14 @@
 import { baseQuery } from "@/lib/baseQuery";
 import { createApi } from "@reduxjs/toolkit/query/react";
-import type { PublicUserProfile, UserProfile, UserSkill, WorkExperience } from "../../src/types/user";
+import type {
+  PublicUserProfile,
+  SkillCatalogItem,
+  UserProfile,
+  UserSkill,
+  WorkExperience,
+  WorkerSearchFilters,
+  WorkerSummary,
+} from "../../src/types/user";
 
 interface ApiResponse<T> { success: boolean; data: T; }
 
@@ -11,6 +19,7 @@ export interface UpdateProfileInput {
   bio?: string;
   location?: string;
   linkedinUrl?: string;
+  expoPushToken?: string | null;
 }
 
 export interface AddSkillInput {
@@ -100,11 +109,36 @@ export const usersApi = createApi({
       query: (id) => ({ url: `/api/v1/users/me/experience/${id}`, method: "DELETE" }),
       invalidatesTags: ["User"],
     }),
+
+    deleteAccount: builder.mutation<void, void>({
+      query: () => ({ url: "/api/v1/users/me", method: "DELETE" }),
+    }),
+
+    searchWorkers: builder.query<WorkerSummary[], WorkerSearchFilters>({
+      query: (filters) => ({ url: "/api/v1/users/workers", params: filters }),
+      transformResponse: (r: ApiResponse<WorkerSummary[]>) => r.data,
+    }),
+
+    getWorkerSkills: builder.query<string[], void>({
+      query: () => "/api/v1/users/skills",
+      transformResponse: (r: ApiResponse<string[]>) => r.data,
+    }),
+
+    getSkillsCatalog: builder.query<SkillCatalogItem[], void>({
+      query: () => "/api/v1/skills-catalog",
+      transformResponse: (r: ApiResponse<SkillCatalogItem[]>) => r.data,
+    }),
+
+    completeOnboarding: builder.mutation<void, void>({
+      query: () => ({ url: "/api/v1/users/me/onboarding/complete", method: "POST" }),
+      invalidatesTags: ["User"],
+    }),
   }),
 });
 
 export const {
   useGetMeQuery,
+  useLazyGetMeQuery,
   useGetPublicProfileQuery,
   useUpdateProfileMutation,
   useUploadAvatarMutation,
@@ -114,4 +148,9 @@ export const {
   useAddExperienceMutation,
   useUpdateExperienceMutation,
   useDeleteExperienceMutation,
+  useDeleteAccountMutation,
+  useSearchWorkersQuery,
+  useGetWorkerSkillsQuery,
+  useGetSkillsCatalogQuery,
+  useCompleteOnboardingMutation,
 } = usersApi;

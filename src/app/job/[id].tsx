@@ -15,6 +15,7 @@ import {
 import { useGetJobByIdQuery } from "../../../store/api/jobsApi";
 import { useApplyToJobMutation, useGetMyApplicationsQuery } from "../../../store/api/applicationApi";
 import { useGetMySavedJobsQuery, useSaveJobMutation, useUnsaveJobMutation } from "../../../store/api/savedJobsApi";
+import { showErrorToast, showSuccessToast } from "../../lib/toast";
 import { colors } from "../../theme/colors";
 
 function formatSalaryRange(min: number | null, max: number | null) {
@@ -56,9 +57,9 @@ export default function JobDetailsScreen() {
           onPress: async () => {
             try {
               await applyToJob({ jobId: id }).unwrap();
-              Alert.alert(t("jobDetails.applySuccessTitle"), t("jobDetails.applySuccessMessage"));
+              showSuccessToast(t("jobDetails.applySuccessMessage"));
             } catch {
-              Alert.alert(t("jobDetails.applyError"));
+              showErrorToast(t("jobDetails.applyError"));
             }
           },
         },
@@ -116,7 +117,10 @@ export default function JobDetailsScreen() {
             <Text style={styles.title}>{job.title}</Text>
 
             {job.company?.name && (
-              <Pressable style={styles.companyRow} onPress={() => {}}>
+              <Pressable
+                style={styles.companyRow}
+                onPress={() => router.push({ pathname: "/company/[id]", params: { id: job.company.id } })}
+              >
                 <Text style={styles.companyText}>{job.company.name}</Text>
                 <Ionicons name="open-outline" size={16} color={colors.accent} />
               </Pressable>
@@ -190,7 +194,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#EEEEF0",
     gap: 8,
   },
-  headerTitle: { fontSize: 19, fontWeight: "800", color: colors.textPrimary },
+  headerTitle: { fontSize: 19, fontWeight: "800", color: colors.textPrimary, fontFamily: "InstrumentSerif_400Regular" },
   headerSpacer: { width: 26, alignItems: "center" },
   centered: { flex: 1, alignItems: "center", justifyContent: "center", gap: 14 },
   errorText: { color: colors.textSecondary, fontSize: 14 },

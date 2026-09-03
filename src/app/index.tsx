@@ -11,9 +11,11 @@ import {
   View,
 } from "react-native";
 import { useSignInMutation } from "../../store/api/authApi";
+import { useGetMeQuery, useLazyGetMeQuery } from "../../store/api/usersApi";
 import { useSession } from "../lib/session";
 import { colors } from "../theme/colors";
 
+import { BrujulaAppIcon } from "@/components/Brujula";
 import { useDispatch } from "react-redux";
 import { setAuth } from "../../store/slices/authSlice";
 
@@ -29,9 +31,18 @@ export default function LoginScreen() {
   const [submitting, setSubmitting] = useState(false);
 
   const [signIn] = useSignInMutation()
+  const [triggerGetMe] = useLazyGetMeQuery();
+  // Only fires for the "already had a session on app launch" branch below —
+  // handleSignIn fetches its own fresh copy via triggerGetMe instead, since
+  // right after signing in this cached query may not have run yet.
+  const { data: me } = useGetMeQuery(undefined, { skip: status !== "authenticated" });
 
-  // Already logged in on app launch — skip straight to the tabs
-  if (status === "authenticated") return <Redirect href="/jobs" />;
+  // Already logged in on app launch — skip straight to the tabs, landing on
+  // the right home tab for the role (employer home is /my-jobs, not /jobs).
+  if (status === "authenticated") {
+    if (!me) return null;
+    return <Redirect href={me.role === "employer" ? "/my-jobs" : "/jobs"} />;
+  }
 
   async function handleSignIn() {
     setError(null);
@@ -45,7 +56,8 @@ export default function LoginScreen() {
           email: response.user.emails[0],
         }));
 
-        router.push("/jobs");
+        const me = await triggerGetMe().unwrap();
+        router.push(me.role === "employer" ? "/my-jobs" : "/jobs");
       } else if (response.status === "WRONG_CREDENTIALS_ERROR") {
         setError(t("login.wrongCredentials"));
       } else {
@@ -61,11 +73,9 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        <View style={styles.logoBadge}>
-          <Text style={styles.logoLetter}>C</Text>
-        </View>
-        <Text style={styles.brandAccent}>CUBAN</Text>
-        <Text style={styles.brandName}>Jobs</Text>
+        <BrujulaAppIcon style = {styles.logoBadge}/>
+        <Text style={styles.brandName}>Brújula</Text>
+        <Text style={styles.brandTagline}>Tu norte profesional.</Text>
 
         <View style={styles.form}>
           <TextInput
@@ -127,9 +137,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 12,
   },
-  logoLetter: { color: colors.accent, fontWeight: "800", fontSize: 26 },
-  brandAccent: { color: colors.accent, fontSize: 13, fontWeight: "800", letterSpacing: 2 },
-  brandName: { color: colors.textPrimary, fontSize: 24, fontWeight: "800", marginBottom: 36 },
+  logoLetter: { color: colors.accent, fontWeight: "800", fontSize: 26, fontFamily: "InstrumentSerif_400Regular" },
+  brandName: { color: colors.textPrimary, fontSize: 40, fontFamily: "InstrumentSerif_400Regular", marginTop: 4 },
+  brandTagline: {
+    color: colors.textSecondary,
+    fontSize: 16,
+    fontFamily: "InstrumentSerif_400Regular_Italic",
+    marginTop: 4,
+    marginBottom: 36,
+  },
   form: { width: "100%", maxWidth: 360, gap: 14 },
   input: {
     backgroundColor: colors.surface,

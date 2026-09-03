@@ -1,3 +1,4 @@
+import { BrujulaAppIcon } from "@/components/Brujula";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -42,9 +43,7 @@ export default function ActivityScreen() {
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
         <View style={styles.brand}>
-          <View style={styles.logoBadge}>
-            <Text style={styles.logoLetter}>C</Text>
-          </View>
+          <BrujulaAppIcon style={styles.logoBadge}/>
           <Text style={styles.headerTitle}>{t("tabs.activity")}</Text>
         </View>
         <Pressable onPress={() => router.push("/profile")}>
@@ -134,8 +133,8 @@ const styles = StyleSheet.create({
     width: 34, height: 34, borderRadius: 10, backgroundColor: colors.textPrimary,
     alignItems: "center", justifyContent: "center",
   },
-  logoLetter: { color: colors.accent, fontWeight: "800", fontSize: 16 },
-  headerTitle: { fontSize: 18, fontWeight: "800", color: colors.textPrimary },
+  logoLetter: { color: colors.accent, fontWeight: "800", fontSize: 16, fontFamily: "InstrumentSerif_400Regular" },
+  headerTitle: { fontSize: 18, fontWeight: "800", color: colors.textPrimary, fontFamily: "InstrumentSerif_400Regular" },
   body: { flex: 1, paddingHorizontal: 20, paddingTop: 16 },
   listContent: { paddingTop: 20, paddingBottom: 24 },
   sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 16 },

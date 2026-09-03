@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     paddingHorizontal: 20, paddingVertical: 14, backgroundColor: colors.surface,
   },
-  headerTitle: { fontSize: 17, fontWeight: "800", color: colors.textPrimary },
+  headerTitle: { fontSize: 17, fontWeight: "800", color: colors.textPrimary, fontFamily: "InstrumentSerif_400Regular" },
   headerSpacer: { width: 26 },
   centered: { flex: 1, alignItems: "center", justifyContent: "center", gap: 14 },
   errorText: { color: colors.textSecondary, fontSize: 14 },

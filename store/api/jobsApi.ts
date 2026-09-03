@@ -7,6 +7,7 @@ import type {
   JobSearchFilters,
   JobStatus,
   JobType,
+  Tag,
 } from "../../src/types/job";
 
 interface ApiResponse<T> {
@@ -81,6 +82,11 @@ export const jobsApi = createApi({
       query: (id) => ({ url: `/api/v1/jobs/${id}`, method: "DELETE" }),
       invalidatesTags: (result, error, id) => [{ type: "Job", id }, { type: "Job", id: "MY_LIST" }],
     }),
+
+    getTags: builder.query<Tag[], void>({
+      query: () => "/api/v1/tags",
+      transformResponse: (response: ApiResponse<Tag[]>) => response.data,
+    }),
   }),
 });
 
@@ -91,4 +97,5 @@ export const {
   useCreateJobMutation,
   useUpdateJobMutation,
   useDeleteJobMutation,
+  useGetTagsQuery,
 } = jobsApi;

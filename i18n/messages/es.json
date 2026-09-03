@@ -17,7 +17,9 @@
     "explore": "Explorar",
     "activity": "Mi Actividad",
     "profile": "Perfil",
-    "myJobs": "Mis Empleos"
+    "myJobs": "Mis Empleos",
+    "exploreWorkers": "Talento",
+    "admin": "Admin"
   },
   "activity": {
     "appliedOn": "Postulado el {{date}}",
@@ -129,6 +131,10 @@
     "signOutConfirmMessage": "Deberás iniciar sesión de nuevo para continuar.",
     "cancel": "Cancelar",
     "companyProfile": "Perfil de empresa",
+    "billing": {
+      "title": "Facturación",
+      "subtitle": "Ver planes y gestionar tu suscripción"
+    },
     "companyProfileSubtitle": "Edita los datos públicos de tu empresa",
     "editProfile": {
       "title": "Editar perfil",
@@ -165,7 +171,30 @@
       "confirmRemoveSkillMessage": "Puedes agregarla de nuevo más tarde si cambias de opinión.",
       "confirmDeleteTitle": "¿Eliminar esta entrada?",
       "confirmDeleteMessage": "Esta acción no se puede deshacer."
-    }
+    },
+    "notifications": {
+      "title": "Notificaciones",
+      "subtitle": "Alertas de empleo y actualizaciones",
+      "permissionDenied": "Se denegó el permiso de notificaciones. Puedes habilitarlo en la configuración de tu dispositivo.",
+      "error": "No se pudo actualizar tu configuración de notificaciones. Inténtalo de nuevo."
+    },
+    "language": "Idioma",
+    "privacyPolicy": {
+      "title": "Política de privacidad",
+      "subtitle": "Cómo protegemos tus datos",
+      "body": "Brújula recopila la información que proporcionas (datos de perfil, currículum, experiencia laboral) para conectar a los solicitantes de empleo con los empleadores en esta plataforma. No vendemos tus datos a terceros. Tu información de contacto solo se comparte con los empleadores a los que postulas. Puedes solicitar la eliminación de tu cuenta y datos en cualquier momento desde esta pantalla.\n\nEste es un texto de marcador de posición para el MVP y no ha sido revisado por un asesor legal — reemplázalo con una política de privacidad real antes de un lanzamiento público."
+    },
+    "deleteAccount": "Eliminar cuenta",
+    "deleteAccountConfirmTitle": "¿Eliminar tu cuenta?",
+    "deleteAccountConfirmMessage": "Esto elimina permanentemente tu cuenta y todos tus datos. Esta acción no se puede deshacer.",
+    "deleteAccountError": "No se pudo eliminar tu cuenta. Si eres empleador, primero elimina o transfiere tu(s) perfil(es) de empresa."
+  },
+  "companyView": {
+    "title": "Empresa",
+    "error": "No se pudo cargar esta empresa.",
+    "about": "Acerca de",
+    "industry": "Industria",
+    "size": "Tamaño de la empresa"
   },
   "jobStatus": {
     "draft": "Borrador",
@@ -185,7 +214,40 @@
     "noCompanySubtitle": "Necesitas un perfil de empresa antes de poder publicar un empleo.",
     "createCompany": "Crear perfil de empresa",
     "noJobs": "Aún no has publicado empleos.",
-    "postJob": "Publicar un empleo"
+    "postJob": "Publicar un empleo",
+    "limitReachedTitle": "Límite del plan alcanzado",
+    "limitReachedMessage": "Has alcanzado el límite de empleos activos de tu plan. Mejora tu plan para publicar más.",
+    "upgrade": "Mejorar plan"
+  },
+  "billing": {
+    "title": "Facturación",
+    "currentPlanLabel": "Plan actual",
+    "renewsOn": "Se renueva el {{date}}",
+    "manageSubscription": "Gestionar suscripción",
+    "upgradeTo": "Mejorar a {{plan}}",
+    "processing": "Procesando — esto puede tardar un momento en actualizarse.",
+    "checkoutError": "No se pudo iniciar el pago. Inténtalo de nuevo.",
+    "portalError": "No se pudo abrir el portal de facturación. Inténtalo de nuevo.",
+    "tiers": {
+      "free": {
+        "name": "Gratis",
+        "price": "Gratis",
+        "feature1": "Hasta 2 empleos activos",
+        "feature2": "Sin búsqueda de candidatos"
+      },
+      "basic": {
+        "name": "Basic",
+        "price": "$3/mes",
+        "feature1": "Hasta 10 empleos activos",
+        "feature2": "Búsqueda de candidatos"
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "$7/mes",
+        "feature1": "Empleos activos ilimitados",
+        "feature2": "Búsqueda de candidatos"
+      }
+    }
   },
   "companyProfile": {
     "title": "Perfil de empresa",
@@ -213,6 +275,7 @@
     "editTitle": "Editar empleo",
     "requiredFields": "El título y la descripción son obligatorios.",
     "noCompany": "Crea un perfil de empresa antes de publicar un empleo.",
+    "invalidSalary": "El salario mínimo/máximo debe ser un número válido.",
     "saveError": "No se pudo guardar este empleo. Inténtalo de nuevo.",
     "confirmDeleteTitle": "¿Eliminar este empleo?",
     "confirmDeleteMessage": "Esta acción no se puede deshacer.",
@@ -252,5 +315,98 @@
     "viewLinkedin": "Ver perfil de LinkedIn",
     "skills": "Habilidades",
     "experience": "Experiencia laboral"
+  },
+  "exploreWorkers": {
+    "title": "Explorar talento",
+    "subtitle": "Explora candidatos y filtra por las habilidades que tu empresa necesita.",
+    "searchPlaceholder": "Buscar por nombre o biografía",
+    "error": "No se pudieron cargar los candidatos.",
+    "empty": "Aún no hay candidatos que coincidan con tu búsqueda.",
+    "upgradeTitle": "La búsqueda de candidatos es una función de pago",
+    "upgradeMessage": "Mejora a Basic o Pro para buscar y ver perfiles de candidatos.",
+    "upgradeButton": "Mejorar plan"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "markAllRead": "Marcar todo como leído",
+    "empty": "Estás al día.",
+    "error": "No se pudieron cargar las notificaciones. Desliza para reintentar."
+  },
+  "admin": {
+    "companies": {
+      "title": "Empresas",
+      "searchPlaceholder": "Buscar por nombre de empresa",
+      "verified": "Verificada",
+      "unverified": "No verificada",
+      "verify": "Verificar",
+      "unverify": "Quitar verificación",
+      "empty": "Ninguna empresa coincide con esa búsqueda.",
+      "error": "No se pudo actualizar esta empresa. Inténtalo de nuevo."
+    },
+    "users": {
+      "title": "Usuarios",
+      "searchPlaceholder": "Buscar por correo",
+      "notFound": "No se encontró ninguna cuenta con ese correo.",
+      "orphanedTitle": "Registro huérfano",
+      "orphanedMessage": "Este correo existe en el sistema de autenticación pero no tiene perfil local — el registro se completó pero la fila de perfil nunca se creó. Limpiarlo libera el correo para registrarse de nuevo.",
+      "cleanup": "Limpiar registro huérfano",
+      "cleanedUp": "Listo. Este correo ya puede usarse para registrarse de nuevo.",
+      "cancel": "Cancelar",
+      "confirmCleanupTitle": "¿Eliminar esta cuenta huérfana?",
+      "confirmCleanupMessage": "Esto elimina permanentemente la cuenta de autenticación colgante. Hazlo solo si confirmaste que no tiene perfil local.",
+      "roleUpdated": "Rol actualizado.",
+      "error": "Algo salió mal. Inténtalo de nuevo."
+    }
+  },
+  "about": {
+    "title": "Acerca de Brújula",
+    "linkTitle": "Acerca de Brújula",
+    "linkSubtitle": "Nuestra misión y valores",
+    "tagline": "Tu norte profesional.",
+    "mission": "Brújula conecta el talento cubano con oportunidades reales — postulaciones con seguimiento real, no un anuncio que se pierde en un grupo de WhatsApp, y empresas verificadas en vez de anuncios anónimos.",
+    "values": {
+      "clearDirection": {
+        "title": "Rumbo claro",
+        "body": "Postulaciones con estado real — pendiente, revisada, aceptada — no un post que se pierde en un grupo de WhatsApp."
+      },
+      "verifiedTrust": {
+        "title": "Confianza verificada",
+        "body": "Perfiles de empresa reales, correos verificados. Se sabe quién publica, no solo qué se publica."
+      },
+      "builtForCuba": {
+        "title": "Hecho para Cuba",
+        "body": "CUP, MLC y USD conviven de forma nativa. Precios de suscripción pensados para el bolsillo cubano, no importados de Silicon Valley."
+      },
+      "openDoors": {
+        "title": "Puertas abiertas",
+        "body": "Trabajo local y remoto en el mismo lugar — sin obligar a elegir entre quedarse o irse para encontrar oportunidad."
+      }
+    }
+  },
+  "onboarding": {
+    "skip": "Omitir por ahora",
+    "continue": "Continuar",
+    "finish": "Finalizar",
+    "employeeWelcomeTitle": "¡Bienvenido a Brújula!",
+    "employeeWelcomeSubtitle": "Configuremos tu perfil para que los empleadores puedan encontrarte.",
+    "employerWelcomeTitle": "¡Bienvenido a Brújula!",
+    "employerWelcomeSubtitle": "Configuremos tu empresa para que puedas empezar a publicar empleos.",
+    "skillsTitle": "¿A qué te dedicas?",
+    "skillsSubtitle": "Elige algunas habilidades u oficios que te describan.",
+    "skillsSearchPlaceholder": "Buscar habilidades",
+    "addCustomSkillPlaceholder": "Escribe tu propia habilidad",
+    "add": "Agregar",
+    "addSkillError": "No se pudo agregar esa habilidad. Inténtalo de nuevo.",
+    "cvTitle": "Agrega tu CV",
+    "cvSubtitle": "Los empleadores podrán verlo cuando apliques a un empleo.",
+    "cvUploaded": "CV subido",
+    "uploadCv": "Subir CV",
+    "uploadError": "No se pudo subir el archivo. Inténtalo de nuevo.",
+    "verifyTitle": "Verifica tu correo",
+    "verifySubtitle": "Necesitas un correo verificado antes de crear una empresa.",
+    "checkAgain": "Ya lo verifiqué — comprobar de nuevo",
+    "companyTitle": "Crea tu empresa",
+    "companySubtitle": "Esto es lo que verán las personas que buscan empleo.",
+    "finishError": "Algo salió mal. Inténtalo de nuevo."
   }
 }

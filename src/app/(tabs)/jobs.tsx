@@ -1,3 +1,4 @@
+import { BrujulaAppIcon } from "@/components/Brujula";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
@@ -12,12 +13,11 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useSelector } from "react-redux";
 import { useGetEmailVerificationStatusQuery, useResendVerificationEmailMutation } from "../../../store/api/authApi";
-import { useSearchJobsQuery } from "../../../store/api/jobsApi";
+import { useGetTagsQuery, useSearchJobsQuery } from "../../../store/api/jobsApi";
 import { useGetMySavedJobsQuery, useSaveJobMutation, useUnsaveJobMutation } from "../../../store/api/savedJobsApi";
-import type { RootState } from "../../../store/store";
 import { JobCard } from "../../components/Jobs/JobCard";
+import { NotificationBell } from "../../components/notifications/NotificationBell";
 import { FilterChip } from "../../components/tabs/FilterChip";
 import { colors } from "../../theme/colors";
 import type { Currency, JobSearchFilters } from "../../types/job";
@@ -29,14 +29,12 @@ export default function ExploreScreen() {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [active, setActive] = useState<Set<ChipKey>>(new Set());
+  const [activeTagIds, setActiveTagIds] = useState<Set<string>>(new Set());
 
   const { data: verification } = useGetEmailVerificationStatusQuery();
   const [resendVerificationEmail, { isLoading: resending }] = useResendVerificationEmailMutation();
   const [resent, setResent] = useState(false);
-
-  const activeUser = useSelector((state: RootState) => state.auth);
-
-  console.log("Active user:", activeUser);
+  const { data: tags } = useGetTagsQuery();
 
   async function handleResend() {
     try {
@@ -65,6 +63,18 @@ export default function ExploreScreen() {
     });
   };
 
+  const toggleTag = (tagId: string) => {
+    setActiveTagIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(tagId)) {
+        next.delete(tagId);
+      } else {
+        next.add(tagId);
+      }
+      return next;
+    });
+  };
+
   const filters = useMemo<JobSearchFilters>(() => {
     const f: JobSearchFilters = { limit: 20, offset: 0 };
     if (query.trim()) f.q = query.trim();
@@ -72,8 +82,9 @@ export default function ExploreScreen() {
     if (active.has("fullTime")) f.jobType = "full_time";
     const currency = (["CUP", "MLC", "USD"] as ChipKey[]).find((c) => active.has(c));
     if (currency) f.currency = currency as Currency;
+    if (activeTagIds.size > 0) f.tagIds = Array.from(activeTagIds).join(",");
     return f;
-  }, [query, active]);
+  }, [query, active, activeTagIds]);
 
   const { data: jobs, isLoading, isError, refetch } = useSearchJobsQuery(filters);
 
@@ -86,17 +97,13 @@ export default function ExploreScreen() {
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
         <View style={styles.brand}>
-          <View style={styles.logoBadge}>
-            <Text style={styles.logoLetter}>C</Text>
-          </View>
+          <BrujulaAppIcon style={styles.logoBadge}/>
           <View>
-            <Text style={styles.brandAccent}>CUBAN</Text>
+            <Text style={styles.brandAccent}>BRUJULA</Text>
             <Text style={styles.brandName}>Jobs</Text>
           </View>
         </View>
-        <Pressable>   {/*onPress={() => router.push("/(tabs)/notifications")} */}
-          <Ionicons name="notifications-outline" size={30} color={colors.textPrimary} />
-        </Pressable>
+        <NotificationBell />
       </View>
 
       {
@@ -168,6 +175,14 @@ export default function ExploreScreen() {
                   onPress={() => toggleChip(item.key)}
                 />
               ))}
+              {tags?.map((tag) => (
+                <FilterChip
+                  key={tag.id}
+                  label={tag.name}
+                  active={activeTagIds.has(tag.id)}
+                  onPress={() => toggleTag(tag.id)}
+                />
+              ))}
             </ScrollView>
             <View style={styles.sectionRow}>
               <Text style={styles.sectionTitle}>{t("explore.latest")}</Text>
@@ -216,7 +231,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  logoLetter: { color: colors.accent, fontWeight: "800", fontSize: 16 },
+  logoLetter: { color: colors.accent, fontWeight: "800", fontSize: 16, fontFamily: "InstrumentSerif_400Regular" },
   brandAccent: { color: colors.accent, fontSize: 11, fontWeight: "800", letterSpacing: 1 },
   brandName: { color: colors.textPrimary, fontSize: 16, fontWeight: "800" },
   verifyBanner: {

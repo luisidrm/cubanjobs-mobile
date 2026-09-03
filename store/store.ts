@@ -2,10 +2,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE, persistReducer, persistStore } from 'redux-persist';
+import { adminApi } from './api/adminApi';
 import { applicationsApi } from './api/applicationApi';
 import { authApi } from './api/authApi';
+import { billingApi } from './api/billingApi';
 import { companiesApi } from './api/companiesApi';
 import { jobsApi } from './api/jobsApi';
+import { notificationsApi } from './api/notificationsApi';
 import { savedJobsApi } from './api/savedJobsApi';
 import { usersApi } from './api/usersApi';
 import authReducer from './slices/authSlice';
@@ -18,6 +21,9 @@ const rootReducer = combineReducers({
   [applicationsApi.reducerPath]: applicationsApi.reducer,
   [usersApi.reducerPath]: usersApi.reducer,
   [companiesApi.reducerPath]: companiesApi.reducer,
+  [notificationsApi.reducerPath]: notificationsApi.reducer,
+  [billingApi.reducerPath]: billingApi.reducer,
+  [adminApi.reducerPath]: adminApi.reducer,
   // Add your standard UI slices here
 });
 
@@ -42,7 +48,10 @@ export const store = configureStore({
       savedJobsApi.middleware,
       applicationsApi.middleware,
       usersApi.middleware,
-      companiesApi.middleware),
+      companiesApi.middleware,
+      notificationsApi.middleware,
+      billingApi.middleware,
+      adminApi.middleware),
 });
 
 export const persistor = persistStore(store);

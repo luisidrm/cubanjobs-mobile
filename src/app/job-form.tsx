@@ -25,6 +25,8 @@ import {
 } from "../../store/api/jobsApi";
 import { FilterChip } from "../components/tabs/FilterChip";
 import { SegmentedControl } from "../components/application/SegmentedControl";
+import { getErrorMessage } from "../lib/errors";
+import { showErrorToast } from "../lib/toast";
 import { colors } from "../theme/colors";
 import type { Currency, JobStatus, JobType } from "../types/job";
 
@@ -80,19 +82,29 @@ export default function JobFormScreen() {
 
   async function handleSave() {
     if (!title.trim() || !description.trim()) {
-      Alert.alert(t("jobForm.requiredFields"));
+      showErrorToast(t("jobForm.requiredFields"));
       return;
     }
     if (!company) {
-      Alert.alert(t("jobForm.noCompany"));
+      showErrorToast(t("jobForm.noCompany"));
+      return;
+    }
+
+    const parsedSalaryMin = salaryMin.trim() ? Number(salaryMin) : undefined;
+    const parsedSalaryMax = salaryMax.trim() ? Number(salaryMax) : undefined;
+    if (
+      (parsedSalaryMin !== undefined && !Number.isFinite(parsedSalaryMin)) ||
+      (parsedSalaryMax !== undefined && !Number.isFinite(parsedSalaryMax))
+    ) {
+      showErrorToast(t("jobForm.invalidSalary"));
       return;
     }
 
     const payload = {
       title: title.trim(),
       description: description.trim(),
-      salaryMin: salaryMin ? Number(salaryMin) : undefined,
-      salaryMax: salaryMax ? Number(salaryMax) : undefined,
+      salaryMin: parsedSalaryMin,
+      salaryMax: parsedSalaryMax,
       currency,
       location: location.trim() || undefined,
       jobType,
@@ -107,8 +119,8 @@ export default function JobFormScreen() {
         await createJob({ companyId: company.id, ...payload }).unwrap();
       }
       router.back();
-    } catch {
-      Alert.alert(t("jobForm.saveError"));
+    } catch (err) {
+      showErrorToast(getErrorMessage(err, t("jobForm.saveError")));
     }
   }
 
@@ -123,8 +135,8 @@ export default function JobFormScreen() {
           try {
             await deleteJob(id).unwrap();
             router.back();
-          } catch {
-            Alert.alert(t("jobForm.saveError"));
+          } catch (err) {
+            showErrorToast(getErrorMessage(err, t("jobForm.saveError")));
           }
         },
       },
@@ -219,7 +231,7 @@ const styles = StyleSheet.create({
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     paddingHorizontal: 20, paddingVertical: 14, backgroundColor: colors.surface,
   },
-  headerTitle: { fontSize: 17, fontWeight: "800", color: colors.textPrimary },
+  headerTitle: { fontSize: 17, fontWeight: "800", color: colors.textPrimary, fontFamily: "InstrumentSerif_400Regular" },
   headerSpacer: { width: 26 },
   centered: { flex: 1, alignItems: "center", justifyContent: "center" },
   body: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 },

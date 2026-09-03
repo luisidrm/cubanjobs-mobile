@@ -45,6 +45,11 @@ export interface EmployerJob {
   updatedAt: string;
 }
 
+export interface Tag {
+  id: string;
+  name: string;
+}
+
 export interface JobSearchFilters {
   q?: string;
   isRemote?: boolean;

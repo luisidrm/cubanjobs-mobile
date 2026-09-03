@@ -27,6 +27,12 @@ export const companiesApi = createApi({
           : [{ type: "Company", id: "LIST" }],
     }),
 
+    getCompanyById: builder.query<Company, string>({
+      query: (id) => `/api/v1/companies/${id}`,
+      transformResponse: (r: ApiResponse<Company>) => r.data,
+      providesTags: (_result, _error, id) => [{ type: "Company", id }],
+    }),
+
     createCompany: builder.mutation<Company, CompanyInput>({
       query: (body) => ({ url: "/api/v1/companies", method: "POST", body }),
       transformResponse: (r: ApiResponse<Company>) => r.data,
@@ -56,6 +62,7 @@ export const companiesApi = createApi({
 
 export const {
   useGetMyCompaniesQuery,
+  useGetCompanyByIdQuery,
   useCreateCompanyMutation,
   useUpdateCompanyMutation,
   useUploadCompanyLogoMutation,

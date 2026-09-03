@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, View } from "react-native";
 import { useGetMeQuery } from "../../../store/api/usersApi";
@@ -22,9 +22,15 @@ export default function TabsLayout() {
   }
 
   const isEmployer = me.role === "employer";
+  const isAdmin = me.role === "admin";
+
+  if (!isAdmin && !me.onboardingCompletedAt) {
+    return <Redirect href="/onboarding" />;
+  }
 
   return (
     <Tabs
+      initialRouteName={isAdmin ? "admin" : isEmployer ? "my-jobs" : "jobs"}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.textPrimary,
@@ -39,7 +45,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="jobs"
         options={{
-          href: isEmployer ? null : undefined,
+          href: isEmployer || isAdmin ? null : undefined,
           title: t("tabs.explore"),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="search" size={size} color={color} />
@@ -49,7 +55,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="activity"
         options={{
-          href: isEmployer ? null : undefined,
+          href: isEmployer || isAdmin ? null : undefined,
           title: t("tabs.activity"),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="briefcase-outline" size={size} color={color} />
@@ -63,6 +69,26 @@ export default function TabsLayout() {
           title: t("tabs.myJobs"),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="business-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="explore-workers"
+        options={{
+          href: isEmployer ? undefined : null,
+          title: t("tabs.exploreWorkers"),
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="people-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="admin"
+        options={{
+          href: isAdmin ? undefined : null,
+          title: t("tabs.admin"),
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="shield-checkmark-outline" size={size} color={color} />
           ),
         }}
       />

@@ -1,3 +1,4 @@
+import { BrujulaAppIcon } from "@/components/Brujula";
 import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import { Image } from "expo-image";
@@ -8,27 +9,34 @@ import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Alert, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useDispatch } from "react-redux";
 import SuperTokens from "supertokens-react-native";
+import { setLanguage } from "../../../i18n/i18n";
 import { applicationsApi } from "../../../store/api/applicationApi";
-import { companiesApi } from "../../../store/api/companiesApi";
+import { billingApi } from "../../../store/api/billingApi";
+import { companiesApi, useGetMyCompaniesQuery } from "../../../store/api/companiesApi";
+import { notificationsApi } from "../../../store/api/notificationsApi";
 import { savedJobsApi } from "../../../store/api/savedJobsApi";
 import {
   useAddExperienceMutation,
   useAddSkillMutation,
+  useDeleteAccountMutation,
   useDeleteExperienceMutation,
   useGetMeQuery,
   useRemoveSkillMutation,
   useUpdateExperienceMutation,
+  useUpdateProfileMutation,
   useUploadAvatarMutation,
   useUploadCvMutation,
   usersApi,
 } from "../../../store/api/usersApi";
 import { clearAuth } from "../../../store/slices/authSlice";
-import { appendFilePart } from "../../lib/upload";
-import { confirmAction } from "../../lib/confirm";
-import { SettingsLinkRow, SettingsToggleRow } from "../../components/users/SettingsRow";
-import { AddSkillChip, SkillChip } from "../../components/users/SkillChip";
 import { ExperienceCard } from "../../components/users/ExperienceCard";
 import { ExperienceForm, type ExperienceFormValues } from "../../components/users/ExperienceForm";
+import { SettingsLinkRow, SettingsToggleRow } from "../../components/users/SettingsRow";
+import { AddSkillChip, SkillChip } from "../../components/users/SkillChip";
+import { confirmAction } from "../../lib/confirm";
+import { registerForPushNotificationsAsync } from "../../lib/pushNotifications";
+import { showErrorToast } from "../../lib/toast";
+import { appendFilePart } from "../../lib/upload";
 import { colors } from "../../theme/colors";
 import type { WorkExperience } from "../../types/user";
 
@@ -37,9 +45,66 @@ export default function ProfileScreen() {
   const router = useRouter();
   const dispatch = useDispatch();
   const { data: user, isLoading, isError, refetch } = useGetMeQuery();
-  const [notifications, setNotifications] = useState(true);
+  const { data: companies } = useGetMyCompaniesQuery(undefined, { skip: user?.role !== "employer" });
+  const company = companies?.[0];
+  const [updateProfile] = useUpdateProfileMutation();
+  const [deleteAccount, { isLoading: deletingAccount }] = useDeleteAccountMutation();
+  const [notificationsBusy, setNotificationsBusy] = useState(false);
   const [uploadAvatar, { isLoading: avatarUploading }] = useUploadAvatarMutation();
   const [uploadCv, { isLoading: cvUploading }] = useUploadCvMutation();
+
+  async function handleToggleNotifications(value: boolean) {
+    setNotificationsBusy(true);
+    try {
+      if (value) {
+        const token = await registerForPushNotificationsAsync();
+        if (!token) {
+          showErrorToast(t("profile.notifications.permissionDenied"));
+          return;
+        }
+        await updateProfile({ id: user!.id, expoPushToken: token }).unwrap();
+      } else {
+        await updateProfile({ id: user!.id, expoPushToken: null }).unwrap();
+      }
+    } catch {
+      showErrorToast(t("profile.notifications.error"));
+    } finally {
+      setNotificationsBusy(false);
+    }
+  }
+
+  function handleToggleLanguage() {
+    void setLanguage(i18n.language === "es" ? "en" : "es");
+  }
+
+  async function handleDeleteAccount() {
+    const ok = await confirmAction(
+      t("profile.deleteAccountConfirmTitle"),
+      t("profile.deleteAccountConfirmMessage"),
+      { confirm: t("profile.deleteAccount"), cancel: t("profile.cancel") }
+    );
+    if (!ok) return;
+
+    try {
+      await deleteAccount().unwrap();
+      // The backend already destroyed the SuperTokens session server-side,
+      // but the device still holds locally-stored tokens — clear those too,
+      // same as doSignOut(), or useSession() will keep reporting "authenticated".
+      await SuperTokens.signOut();
+      dispatch(clearAuth());
+      dispatch(usersApi.util.resetApiState());
+      dispatch(applicationsApi.util.resetApiState());
+      dispatch(savedJobsApi.util.resetApiState());
+      dispatch(companiesApi.util.resetApiState());
+      dispatch(notificationsApi.util.resetApiState());
+      dispatch(billingApi.util.resetApiState());
+      router.replace("/");
+    } catch {
+      // Most likely cause: an employer still owns a company (backend 409) —
+      // message is generic since we don't inspect error bodies elsewhere in this file either.
+      showErrorToast(t("profile.deleteAccountError"));
+    }
+  }
 
   const [addSkill] = useAddSkillMutation();
   const [removeSkill] = useRemoveSkillMutation();
@@ -59,7 +124,7 @@ export default function ProfileScreen() {
       setNewSkill("");
       setAddingSkill(false);
     } catch {
-      Alert.alert(t("profile.workExperience.skillError"));
+      showErrorToast(t("profile.workExperience.skillError"));
     }
   }
 
@@ -92,7 +157,7 @@ export default function ProfileScreen() {
       }
       setExperienceFormTarget(null);
     } catch {
-      Alert.alert(t("profile.workExperience.saveError"));
+      showErrorToast(t("profile.workExperience.saveError"));
     }
   }
 
@@ -115,6 +180,8 @@ export default function ProfileScreen() {
     dispatch(applicationsApi.util.resetApiState());
     dispatch(savedJobsApi.util.resetApiState());
     dispatch(companiesApi.util.resetApiState());
+    dispatch(notificationsApi.util.resetApiState());
+    dispatch(billingApi.util.resetApiState());
     router.replace("/");
   }
 
@@ -169,7 +236,7 @@ export default function ProfileScreen() {
     try {
       await uploadAvatar(formData).unwrap();
     } catch {
-      Alert.alert(t("profile.uploadError"));
+      showErrorToast(t("profile.uploadError"));
     }
   }
 
@@ -189,7 +256,7 @@ export default function ProfileScreen() {
     try {
       await uploadCv(formData).unwrap();
     } catch {
-      Alert.alert(t("profile.uploadError"));
+      showErrorToast(t("profile.uploadError"));
     }
   }
 
@@ -197,9 +264,7 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
         <View style={styles.brand}>
-          <View style={styles.logoBadge}>
-            <Text style={styles.logoLetter}>C</Text>
-          </View>
+          <BrujulaAppIcon style={styles.logoBadge}/>
           <Text style={styles.headerTitle}>{t("tabs.profile")}</Text>
         </View>
       </View>
@@ -297,6 +362,12 @@ export default function ProfileScreen() {
                   subtitle={t("profile.companyProfileSubtitle")}
                   onPress={() => router.push("/company-profile")}
                 />
+                <SettingsLinkRow
+                  icon="card-outline"
+                  title={t("profile.billing.title")}
+                  subtitle={company ? t(`billing.tiers.${company.planTier}.name`) : t("profile.billing.subtitle")}
+                  onPress={() => router.push("/billing")}
+                />
               </View>
             )}
 
@@ -381,28 +452,50 @@ export default function ProfileScreen() {
             <View style={styles.settingsCard}>
               <SettingsToggleRow
                 icon="notifications-outline"
-                title="Notifications"
-                subtitle="Job alerts and updates"
-                value={notifications}
-                onChange={setNotifications}
+                title={t("profile.notifications.title")}
+                subtitle={t("profile.notifications.subtitle")}
+                value={!!user.expoPushToken}
+                onChange={handleToggleNotifications}
+                disabled={notificationsBusy}
               />
               <SettingsLinkRow
                 icon="globe-outline"
-                title="Language"
+                title={t("profile.language")}
                 subtitle={i18n.language === "es" ? "Español" : "English"}
-                onPress={() => {}}
+                onPress={handleToggleLanguage}
               />
               <SettingsLinkRow
                 icon="lock-closed-outline"
-                title="Privacy Policy"
-                subtitle="How we protect your data"
-                onPress={() => {}}
+                title={t("profile.privacyPolicy.title")}
+                subtitle={t("profile.privacyPolicy.subtitle")}
+                onPress={() => router.push("/privacy-policy")}
+              />
+              <SettingsLinkRow
+                icon="compass-outline"
+                title={t("about.linkTitle")}
+                subtitle={t("about.linkSubtitle")}
+                onPress={() => router.push("/about")}
               />
             </View>
 
             <Pressable style={styles.signOutButton} onPress={handleSignOut}>
               <Ionicons name="log-out-outline" size={18} color="#D64545" />
               <Text style={styles.signOutText}>{t("profile.signOut")}</Text>
+            </Pressable>
+
+            <Pressable
+              style={styles.deleteAccountButton}
+              onPress={handleDeleteAccount}
+              disabled={deletingAccount}
+            >
+              {deletingAccount ? (
+                <ActivityIndicator size="small" color="#D64545" />
+              ) : (
+                <>
+                  <Ionicons name="trash-outline" size={16} color="#D64545" />
+                  <Text style={styles.deleteAccountText}>{t("profile.deleteAccount")}</Text>
+                </>
+              )}
             </Pressable>
           </>
         )}
@@ -419,8 +512,8 @@ const styles = StyleSheet.create({
     width: 34, height: 34, borderRadius: 10, backgroundColor: colors.textPrimary,
     alignItems: "center", justifyContent: "center",
   },
-  logoLetter: { color: colors.accent, fontWeight: "800", fontSize: 16 },
-  headerTitle: { fontSize: 18, fontWeight: "800", color: colors.textPrimary },
+  logoLetter: { color: colors.accent, fontWeight: "800", fontSize: 16, fontFamily: "InstrumentSerif_400Regular" },
+  headerTitle: { fontSize: 18, fontWeight: "800", color: colors.textPrimary, fontFamily: "InstrumentSerif_400Regular" },
   centered: { flex: 1, alignItems: "center", justifyContent: "center", gap: 14 },
   errorText: { color: colors.textSecondary, fontSize: 14 },
   retryButton: { backgroundColor: colors.accent, borderRadius: 999, paddingHorizontal: 20, paddingVertical: 10 },
@@ -500,4 +593,9 @@ const styles = StyleSheet.create({
     marginTop: 20, paddingVertical: 14,
   },
   signOutText: { color: "#D64545", fontWeight: "700", fontSize: 15 },
+  deleteAccountButton: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
+    marginTop: 4, paddingVertical: 14,
+  },
+  deleteAccountText: { color: "#D64545", fontWeight: "600", fontSize: 13 },
 });

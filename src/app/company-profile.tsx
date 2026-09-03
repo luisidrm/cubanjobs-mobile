@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -25,6 +24,7 @@ import {
 } from "../../store/api/companiesApi";
 import { SegmentedControl } from "../components/application/SegmentedControl";
 import { appendFilePart } from "../lib/upload";
+import { showErrorToast, showSuccessToast } from "../lib/toast";
 import { colors } from "../theme/colors";
 import type { EmployeeCount } from "../types/company";
 
@@ -67,7 +67,7 @@ export default function CompanyProfileScreen() {
 
   async function handleSave() {
     if (!name.trim()) {
-      Alert.alert(t("companyProfile.nameRequired"));
+      showErrorToast(t("companyProfile.nameRequired"));
       return;
     }
 
@@ -86,9 +86,9 @@ export default function CompanyProfileScreen() {
       } else {
         await createCompany(payload).unwrap();
       }
-      Alert.alert(t("companyProfile.savedTitle"), t("companyProfile.savedMessage"));
+      showSuccessToast(t("companyProfile.savedMessage"));
     } catch {
-      Alert.alert(t("companyProfile.saveError"));
+      showErrorToast(t("companyProfile.saveError"));
     }
   }
 
@@ -114,7 +114,7 @@ export default function CompanyProfileScreen() {
     try {
       await uploadLogo({ companyId: company.id, formData }).unwrap();
     } catch {
-      Alert.alert(t("companyProfile.uploadError"));
+      showErrorToast(t("companyProfile.uploadError"));
     }
   }
 
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     paddingHorizontal: 20, paddingVertical: 14, backgroundColor: colors.surface,
   },
-  headerTitle: { fontSize: 17, fontWeight: "800", color: colors.textPrimary },
+  headerTitle: { fontSize: 17, fontWeight: "800", color: colors.textPrimary, fontFamily: "InstrumentSerif_400Regular" },
   headerSpacer: { width: 26 },
   centered: { flex: 1, alignItems: "center", justifyContent: "center" },
   body: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 },

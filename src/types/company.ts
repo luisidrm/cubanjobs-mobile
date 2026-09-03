@@ -13,6 +13,9 @@ export interface Company {
   location: string | null;
   isVerified: boolean;
   planTier: CompanyPlan;
+  stripeCustomerId: string | null;
+  stripeSubscriptionStatus: string | null;
+  currentPeriodEnd: string | null;
   createdAt: string;
   updatedAt: string;
 }

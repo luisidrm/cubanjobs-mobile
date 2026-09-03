@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -16,6 +15,7 @@ import {
   View,
 } from "react-native";
 import { useGetMeQuery, useUpdateProfileMutation } from "../../store/api/usersApi";
+import { showErrorToast } from "../lib/toast";
 import { colors } from "../theme/colors";
 
 export default function EditProfileScreen() {
@@ -36,6 +36,7 @@ export default function EditProfileScreen() {
     if (!user) return;
     setFirstName(user.firstName ?? "");
     setLastName(user.lastName ?? "");
+    setBio(user.bio ?? "");
     setLocation(user.location ?? "");
     setPhone(user.phone ?? "");
     setLinkedinUrl(user.linkedinUrl ?? "");
@@ -55,7 +56,7 @@ export default function EditProfileScreen() {
       }).unwrap();
       router.back();
     } catch {
-      Alert.alert(t("profile.editProfile.saveError"));
+      showErrorToast(t("profile.editProfile.saveError"));
     }
   }
 
@@ -142,7 +143,7 @@ const styles = StyleSheet.create({
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     paddingHorizontal: 20, paddingVertical: 14, backgroundColor: colors.surface,
   },
-  headerTitle: { fontSize: 17, fontWeight: "800", color: colors.textPrimary },
+  headerTitle: { fontSize: 17, fontWeight: "800", color: colors.textPrimary, fontFamily: "InstrumentSerif_400Regular" },
   headerSpacer: { width: 26 },
   centered: { flex: 1, alignItems: "center", justifyContent: "center" },
   body: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 },

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { useVerifyEmailMutation } from "../../store/api/authApi";
+import { useGetMeQuery } from "../../store/api/usersApi";
 import { colors } from "../theme/colors";
 
 type VerifyState = "verifying" | "success" | "invalid";
@@ -14,6 +15,8 @@ export default function VerifyEmailScreen() {
 
   const [state, setState] = useState<VerifyState>("verifying");
   const [verifyEmail] = useVerifyEmailMutation();
+  const { data: me } = useGetMeQuery();
+  const homeRoute = me?.role === "employer" ? "/my-jobs" : "/jobs";
 
   useEffect(() => {
     if (!token) {
@@ -46,7 +49,7 @@ export default function VerifyEmailScreen() {
           <>
             <Text style={styles.title}>{t("verifyEmail.successTitle")}</Text>
             <Text style={styles.subtitle}>{t("verifyEmail.successMessage")}</Text>
-            <Pressable style={styles.button} onPress={() => router.replace("/jobs")}>
+            <Pressable style={styles.button} onPress={() => router.replace(homeRoute)}>
               <Text style={styles.buttonText}>{t("verifyEmail.continue")}</Text>
             </Pressable>
           </>
@@ -56,7 +59,7 @@ export default function VerifyEmailScreen() {
           <>
             <Text style={styles.title}>{t("verifyEmail.invalidTitle")}</Text>
             <Text style={styles.subtitle}>{t("verifyEmail.invalidMessage")}</Text>
-            <Pressable style={styles.button} onPress={() => router.replace("/jobs")}>
+            <Pressable style={styles.button} onPress={() => router.replace(homeRoute)}>
               <Text style={styles.buttonText}>{t("verifyEmail.continue")}</Text>
             </Pressable>
           </>

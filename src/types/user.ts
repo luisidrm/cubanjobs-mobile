@@ -20,13 +20,23 @@ export interface UserProfile {
   role: "employee" | "employer" | "admin";
   firstName: string | null;
   lastName: string | null;
+  bio: string | null;
   phone: string | null;
   location: string | null;
   profilePictureUrl: string | null;
   cvUrl: string | null;
   linkedinUrl: string | null;
+  expoPushToken: string | null;
+  onboardingCompletedAt: string | null;
   skills: UserSkill[];
   experience: WorkExperience[];
+}
+
+/** A row from the seeded master skills/job-title catalog (GET /api/v1/skills-catalog) —
+ * used as an autocomplete/picker source, not a validation allowlist. */
+export interface SkillCatalogItem {
+  id: string;
+  name: string;
 }
 
 /** Shape returned by the public, unauthenticated GET /api/v1/users/:id — a
@@ -46,4 +56,24 @@ export interface PublicUserProfile {
   createdAt: string;
   skills: UserSkill[];
   experience: Omit<WorkExperience, "contact">[];
+}
+
+/** Lightweight row returned by the employer-only worker directory search
+ * (GET /api/v1/users/workers) — enough to render a card, not a full profile. */
+export interface WorkerSummary {
+  id: string;
+  firstName: string | null;
+  lastName: string | null;
+  bio: string | null;
+  location: string | null;
+  profilePictureUrl: string | null;
+  skills: UserSkill[];
+}
+
+export interface WorkerSearchFilters {
+  q?: string;
+  skills?: string;
+  location?: string;
+  limit?: number;
+  offset?: number;
 }

@@ -1,9 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, FlatList, Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, FlatList, Platform, Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { useGetEmailVerificationStatusQuery, useResendVerificationEmailMutation } from "../../../store/api/authApi";
 import { useGetMyCompaniesQuery } from "../../../store/api/companiesApi";
 import { useGetJobsByCompanyQuery } from "../../../store/api/jobsApi";
+import { NotificationBell } from "../../components/notifications/NotificationBell";
+import { getPlanJobLimit } from "../../lib/plans";
 import { colors } from "../../theme/colors";
 import type { EmployerJob, JobStatus } from "../../types/job";
 
@@ -57,26 +61,78 @@ export default function MyJobsScreen() {
     isLoading: jobsLoading,
   } = useGetJobsByCompanyQuery(company?.id ?? "", { skip: !company });
 
+  const { data: verification } = useGetEmailVerificationStatusQuery();
+  const [resendVerificationEmail, { isLoading: resending }] = useResendVerificationEmailMutation();
+  const [resent, setResent] = useState(false);
+
+  async function handleResend() {
+    try {
+      await resendVerificationEmail().unwrap();
+      setResent(true);
+    } catch {
+      // Best-effort — user can just tap again.
+    }
+  }
+
+  // Proactive UX nicety only — the real enforcement is the backend 403 from
+  // createJob/updateJob, already surfaced via job-form.tsx's existing error toast.
+  function handlePostJob() {
+    const limit = company ? getPlanJobLimit(company.planTier) : null;
+    const activeCount = jobs?.filter((j) => j.status === "active").length ?? 0;
+
+    if (limit !== null && activeCount >= limit) {
+      if (Platform.OS === "web") {
+        if (window.confirm(t("myJobs.limitReachedMessage") as string)) {
+          router.push("/billing");
+        }
+        return;
+      }
+      Alert.alert(t("myJobs.limitReachedTitle"), t("myJobs.limitReachedMessage"), [
+        { text: t("profile.cancel"), style: "cancel" },
+        { text: t("myJobs.upgrade"), onPress: () => router.push("/billing") },
+      ]);
+      return;
+    }
+
+    router.push("/job-form");
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
         <View style={styles.brand}>
           <View style={styles.logoBadge}>
-            <Text style={styles.logoLetter}>C</Text>
+            <Text style={styles.logoLetter}>B</Text>
           </View>
           <Text style={styles.headerTitle}>{t("tabs.myJobs")}</Text>
         </View>
         <View style={styles.headerActions}>
           {company && (
-            <Pressable onPress={() => router.push("/job-form")} hitSlop={8}>
+            <Pressable onPress={handlePostJob} hitSlop={8}>
               <Ionicons name="add-circle-outline" size={26} color={colors.textPrimary} />
             </Pressable>
           )}
+          <NotificationBell />
           <Pressable onPress={() => router.push("/(tabs)/profile")}>
             <Ionicons name="person-circle-outline" size={30} color={colors.textPrimary} />
           </Pressable>
         </View>
       </View>
+
+      {verification?.isVerified === false && (
+        <View style={styles.verifyBanner}>
+          <Ionicons name="mail-unread-outline" size={20} color={colors.accent} />
+          <View style={styles.verifyBannerText}>
+            <Text style={styles.verifyBannerTitle}>{t("verifyBanner.title")}</Text>
+            <Text style={styles.verifyBannerSubtitle}>{t("verifyBanner.subtitle")}</Text>
+          </View>
+          <Pressable onPress={handleResend} disabled={resending || resent}>
+            <Text style={styles.verifyBannerAction}>
+              {resent ? t("verifyBanner.resent") : t("verifyBanner.resend")}
+            </Text>
+          </Pressable>
+        </View>
+      )}
 
       {companiesLoading && (
         <View style={styles.centered}>
@@ -111,7 +167,7 @@ export default function MyJobsScreen() {
             !jobsLoading ? (
               <View style={styles.centered}>
                 <Text style={styles.emptySubtitle}>{t("myJobs.noJobs")}</Text>
-                <Pressable style={styles.primaryButton} onPress={() => router.push("/job-form")}>
+                <Pressable style={styles.primaryButton} onPress={handlePostJob}>
                   <Text style={styles.primaryButtonText}>{t("myJobs.postJob")}</Text>
                 </Pressable>
               </View>
@@ -135,8 +191,22 @@ const styles = StyleSheet.create({
     width: 34, height: 34, borderRadius: 10, backgroundColor: colors.textPrimary,
     alignItems: "center", justifyContent: "center",
   },
-  logoLetter: { color: colors.accent, fontWeight: "800", fontSize: 16 },
-  headerTitle: { fontSize: 18, fontWeight: "800", color: colors.textPrimary },
+  logoLetter: { color: colors.accent, fontWeight: "800", fontSize: 16, fontFamily: "InstrumentSerif_400Regular" },
+  headerTitle: { fontSize: 18, fontWeight: "800", color: colors.textPrimary, fontFamily: "InstrumentSerif_400Regular" },
+  verifyBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: colors.accentSoft,
+    marginHorizontal: 20,
+    marginTop: 14,
+    padding: 14,
+    borderRadius: 16,
+  },
+  verifyBannerText: { flex: 1 },
+  verifyBannerTitle: { fontSize: 13, fontWeight: "700", color: colors.textPrimary },
+  verifyBannerSubtitle: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+  verifyBannerAction: { fontSize: 13, fontWeight: "700", color: colors.accent },
   centered: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, paddingHorizontal: 32, paddingTop: 60 },
   emptyTitle: { fontSize: 17, fontWeight: "800", color: colors.textPrimary, textAlign: "center" },
   emptySubtitle: { fontSize: 14, color: colors.textSecondary, textAlign: "center" },

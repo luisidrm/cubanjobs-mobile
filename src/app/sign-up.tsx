@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { useDispatch } from "react-redux";
 import { useSignUpMutation } from "../../store/api/authApi";
+import { useGetMeQuery } from "../../store/api/usersApi";
 import { setAuth } from "../../store/slices/authSlice";
 import { SegmentedControl } from "../components/application/SegmentedControl";
 import { useSession } from "../lib/session";
@@ -32,8 +33,12 @@ export default function SignUpScreen() {
   const [submitting, setSubmitting] = useState(false);
 
   const [signUp] = useSignUpMutation();
+  const { data: me } = useGetMeQuery(undefined, { skip: status !== "authenticated" });
 
-  if (status === "authenticated") return <Redirect href="/jobs" />;
+  if (status === "authenticated") {
+    if (!me) return null;
+    return <Redirect href={me.role === "employer" ? "/my-jobs" : "/jobs"} />;
+  }
 
   async function handleSignUp() {
     setError(null);
@@ -52,7 +57,7 @@ export default function SignUpScreen() {
           supertokensUserId: response.user.id,
           email: response.user.emails[0],
         }));
-        router.replace("/jobs");
+        router.replace(role === "employer" ? "/my-jobs" : "/jobs");
       } else if (response.status === "FIELD_ERROR") {
         setError(response.formFields[0]?.error ?? t("signUp.genericError"));
       }
@@ -67,7 +72,7 @@ export default function SignUpScreen() {
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.logoBadge}>
-          <Text style={styles.logoLetter}>C</Text>
+          <Text style={styles.logoLetter}>B</Text>
         </View>
         <Text style={styles.brandName}>{t("signUp.title")}</Text>
 
@@ -140,7 +145,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 12,
   },
-  logoLetter: { color: colors.accent, fontWeight: "800", fontSize: 26 },
+  logoLetter: { color: colors.accent, fontWeight: "800", fontSize: 26, fontFamily: "InstrumentSerif_400Regular" },
   brandName: { color: colors.textPrimary, fontSize: 22, fontWeight: "800", marginBottom: 28 },
   form: { width: "100%", maxWidth: 360, gap: 14 },
   input: {

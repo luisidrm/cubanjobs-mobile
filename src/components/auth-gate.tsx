@@ -1,7 +1,10 @@
+import * as Notifications from "expo-notifications";
 import { usePathname, useRouter } from "expo-router";
 import { type ReactNode, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { notificationsApi } from "../../store/api/notificationsApi";
 import { useSession } from "../lib/session";
+import { showInfoToast } from "../lib/toast";
 import { selectIsAuthenticated } from "../../store/slices/authSlice";
 
 // Routes reachable without a session — sign-in itself, account creation,
@@ -25,6 +28,7 @@ export function AuthGate({ children }: Props) {
   const isPersistedAuthenticated = useSelector(selectIsAuthenticated);
   const pathname = usePathname();
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const isPublicRoute = PUBLIC_ROUTES.has(pathname);
 
@@ -33,6 +37,32 @@ export function AuthGate({ children }: Props) {
       router.replace("/");
     }
   }, [status, isPublicRoute, router]);
+
+  // Only listens for notifications that do arrive (push registration itself
+  // stays an explicit opt-in toggle in Settings, not auto-registered here).
+  useEffect(() => {
+    if (status !== "authenticated") return;
+
+    const receivedSubscription = Notifications.addNotificationReceivedListener((notification) => {
+      const title = notification.request.content.title;
+      if (title) showInfoToast(title);
+      dispatch(
+        notificationsApi.util.invalidateTags([
+          { type: "Notification", id: "LIST" },
+          "NotificationUnreadCount",
+        ])
+      );
+    });
+
+    const responseSubscription = Notifications.addNotificationResponseReceivedListener(() => {
+      router.push("/notifications");
+    });
+
+    return () => {
+      receivedSubscription.remove();
+      responseSubscription.remove();
+    };
+  }, [status, dispatch, router]);
 
   if (status === "loading") {
     return isPersistedAuthenticated || isPublicRoute ? <>{children}</> : null;

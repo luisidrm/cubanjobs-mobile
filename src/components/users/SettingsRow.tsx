@@ -9,14 +9,15 @@ interface BaseProps {
 }
 
 export function SettingsToggleRow({
-  icon, title, subtitle, value, onChange,
-}: BaseProps & { value: boolean; onChange: (v: boolean) => void }) {
+  icon, title, subtitle, value, onChange, disabled,
+}: BaseProps & { value: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
   return (
     <View style={styles.row}>
       <RowLeft icon={icon} title={title} subtitle={subtitle} />
       <Switch
         value={value}
         onValueChange={onChange}
+        disabled={disabled}
         trackColor={{ true: colors.accent, false: "#E2E2E6" }}
       />
     </View>
