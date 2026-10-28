@@ -21,6 +21,7 @@ import SuperTokens from 'supertokens-react-native';
 import { persistor, store } from '../../store/store';
 import { AuthGate } from '../components/auth-gate';
 import { toastConfig } from '../components/AppToast';
+import { API_URL } from '../lib/config';
 import { loadThemePreference } from '../lib/theme-preference';
 import { useAppColorScheme } from '../theme/scheme';
 
@@ -28,7 +29,7 @@ import { useAppColorScheme } from '../theme/scheme';
 SplashScreen.preventAutoHideAsync();
 
 SuperTokens.init({
-  apiDomain: process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:5000",
+  apiDomain: API_URL,
   apiBasePath: "/auth",
 });
 

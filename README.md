@@ -1,56 +1,35 @@
-# Welcome to your Expo app 👋
+# Brújula — mobile app
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Expo (React Native) app for job seekers and employers. Talks to the Brújula API in `../back`.
 
-## Get started
+- Bundle ID / Android package: `com.luisidrm.brujula`
+- URL scheme: `brujula`
+- Languages: English and Spanish
 
-1. Install dependencies
+## Run it locally
 
-   ```bash
-   npm install
-   ```
+1. Start the API (see `../back/README.md`).
+2. Copy `.env.example` to `.env`. `EXPO_PUBLIC_API_URL` must start with `EXPO_PUBLIC_` or Expo will not embed it. On a physical phone use your computer's LAN address (`http://192.168.x.x:5000`), not `localhost`.
+3. `npm install`, then `npx expo start`.
 
-2. Start the app
+Checks: `npx tsc --noEmit`. CI also bundles the app with `npx expo export --platform android`.
 
-   ```bash
-   npx expo start
-   ```
+## Configuration
 
-In the output, you'll find options to open the app in a
+| Variable | Where | Meaning |
+| --- | --- | --- |
+| `EXPO_PUBLIC_API_URL` | `.env` locally, `eas.json` per build profile | API base URL. Release builds **throw at startup** if it is missing, a `REPLACE_WITH_...` placeholder, or localhost (`src/lib/config.ts`). |
+| `EXPO_PUBLIC_STRIPE_ENABLED` | build profile | `true` shows the Stripe buttons on the billing screen. Hidden by default; payments go through Transfermóvil. |
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Release builds (EAS)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+eas build --platform android --profile preview      # installable APK for testing
+eas build --platform android --profile production   # AAB for Google Play
+eas build --platform ios --profile production
+eas submit --platform android|ios --profile production
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Before the first build, replace the `REPLACE_WITH_...` values in `eas.json` (API URLs, App Store Connect app ID) and add the Google Play service-account key it points to. The EAS project is registered under the slug `mobile`; renaming the slug in `app.json` requires renaming the project on expo.dev first.
 
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+The `android/` and `ios/` folders are generated and git-ignored; EAS builds from `app.json`.

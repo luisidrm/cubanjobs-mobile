@@ -6,6 +6,7 @@ import { CheckCircle2 } from "lucide-react-native";
 import { ActivityIndicator, Platform, ScrollView, View } from "react-native";
 import { useCreateCheckoutSessionMutation, useCreatePortalSessionMutation } from "../../store/api/billingApi";
 import { useGetMyCompaniesQuery } from "../../store/api/companiesApi";
+import { APP_SCHEME, STRIPE_ENABLED } from "../lib/config";
 import { getErrorMessage } from "../lib/errors";
 import { showErrorToast, showInfoToast } from "../lib/toast";
 import { Badge, Button, Card, CardSkeletons, Icon, NavBar, Screen, Text } from "../components/ds";
@@ -27,7 +28,7 @@ const BILLING_PLATFORM: "web" | "native" = Platform.OS === "web" ? "web" : "nati
 const BILLING_RETURN_URL =
   Platform.OS === "web" && typeof window !== "undefined"
     ? `${window.location.origin}/billing`
-    : "mobile://billing";
+    : `${APP_SCHEME}://billing`;
 
 export default function BillingScreen() {
   const { t } = useTranslation();
@@ -128,7 +129,7 @@ export default function BillingScreen() {
 
                 {isCurrent ? (
                   <Badge tone="accent">{t("billing.currentPlanLabel")}</Badge>
-                ) : isOwner && PAID_TIERS.includes(tier) ? (
+                ) : STRIPE_ENABLED && isOwner && PAID_TIERS.includes(tier) ? (
                   <Button
                     block
                     title={t("billing.upgradeTo", { plan: t(`billing.tiers.${tier}.name`) })}
@@ -142,10 +143,10 @@ export default function BillingScreen() {
           })}
 
           {isOwner ? (
-            <Button block variant="secondary" title={t("plans.payTransfermovil")} onPress={() => router.push("/plans")} />
+            <Button block variant={STRIPE_ENABLED ? "secondary" : "primary"} title={t("plans.payTransfermovil")} onPress={() => router.push("/plans")} />
           ) : null}
 
-          {isOwner && company.stripeCustomerId ? (
+          {STRIPE_ENABLED && isOwner && company.stripeCustomerId ? (
             <Button
               block
               variant="tinted"

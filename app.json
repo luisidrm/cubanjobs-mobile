@@ -5,11 +5,11 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/brujula.png",
-    "scheme": "mobile",
+    "scheme": "brujula",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.luisidrm.cubanjobs",
+      "bundleIdentifier": "com.luisidrm.brujula",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -23,10 +23,12 @@
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "android.permission.RECORD_AUDIO",
         "android.permission.POST_NOTIFICATIONS"
       ],
-      "package": "com.luisidrm.cubanjobs"
+      "package": "com.luisidrm.brujula",
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static",
@@ -46,7 +48,9 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow Cuban Jobs to access your photos to set a profile picture."
+          "photosPermission": "Allow Brújula to access your photos to set a profile picture, add photos to your posts and set a job cover image.",
+          "cameraPermission": false,
+          "microphonePermission": false
         }
       ],
       "expo-notifications"

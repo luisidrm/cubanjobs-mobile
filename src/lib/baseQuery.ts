@@ -1,9 +1,10 @@
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
 import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import SuperTokens from 'supertokens-react-native';
+import { API_URL } from './config';
 
 const rawBaseQuery = fetchBaseQuery({
-    baseUrl: process.env.API_BASE_URL || "http://localhost:5000", // Replace with your actual API base URL
+    baseUrl: API_URL,
     prepareHeaders: async (headers) => {
         // Automatically injects custom anti-csrf headers if SuperTokens requires them
         headers.set('rid', 'session');
