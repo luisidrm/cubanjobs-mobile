@@ -1,4 +1,9 @@
-export type NotificationType = "application_status_changed";
+export type NotificationType =
+  | "application_status_changed"
+  | "plan_expiring"
+  | "plan_expired"
+  | "payment_approved"
+  | "payment_rejected";
 
 export interface Notification {
   id: string;

@@ -1,20 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import { useRouter } from "expo-router";
+import { Building2, Check, CircleCheck, FileCheck2, FileText, MailCheck, MailWarning, Plus, Search, Upload, Wrench } from "lucide-react-native";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useCreateCompanyMutation } from "../../store/api/companiesApi";
 import { useGetEmailVerificationStatusQuery, useResendVerificationEmailMutation } from "../../store/api/authApi";
 import {
@@ -25,11 +14,26 @@ import {
   useRemoveSkillMutation,
   useUploadCvMutation,
 } from "../../store/api/usersApi";
-import { SegmentedControl } from "../components/application/SegmentedControl";
-import { SkillChip } from "../components/users/SkillChip";
+import {
+  ACTION_BAR_CLEARANCE,
+  BrandMark,
+  Button,
+  Card,
+  Chip,
+  GlassActionBar,
+  Icon,
+  List,
+  ListRow,
+  OnboardingHeader,
+  Screen,
+  SegmentedControl,
+  Text,
+  TextField,
+} from "../components/ds";
 import { appendFilePart } from "../lib/upload";
 import { showErrorToast } from "../lib/toast";
-import { colors } from "../theme/colors";
+import { useTokens } from "../theme/use-tokens";
+import { JoinCompany } from "../components/team/JoinCompany";
 import type { EmployeeCount } from "../types/company";
 
 type Step = "welcome" | "skills" | "cv" | "verify" | "company";
@@ -38,15 +42,16 @@ const EMPLOYEE_STEPS: Step[] = ["welcome", "skills", "cv"];
 const EMPLOYER_STEPS_UNVERIFIED: Step[] = ["welcome", "verify", "company"];
 const EMPLOYER_STEPS_VERIFIED: Step[] = ["welcome", "company"];
 
-const EMPLOYEE_COUNT_OPTIONS: { key: EmployeeCount; label: string }[] = [
-  { key: "1-10", label: "1-10" },
-  { key: "11-50", label: "11-50" },
-  { key: "51-200", label: "51-200" },
-  { key: "200+", label: "200+" },
+const EMPLOYEE_COUNT_OPTIONS: { value: EmployeeCount; label: string }[] = [
+  { value: "1-10", label: "1-10" },
+  { value: "11-50", label: "11-50" },
+  { value: "51-200", label: "51-200" },
+  { value: "200+", label: "200+" },
 ];
 
 export default function OnboardingScreen() {
   const { t } = useTranslation();
+  const p = useTokens();
   const router = useRouter();
 
   const { data: me, isLoading: meLoading } = useGetMeQuery();
@@ -128,6 +133,8 @@ export default function OnboardingScreen() {
   );
   const [resendVerificationEmail, { isLoading: resending }] = useResendVerificationEmailMutation();
   const [resent, setResent] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [nameError, setNameError] = useState(false);
 
   useEffect(() => {
     if (step === "verify" && verification?.isVerified) {
@@ -146,6 +153,7 @@ export default function OnboardingScreen() {
 
   // ---- company (employer) ----
   const [createCompany, { isLoading: creatingCompany }] = useCreateCompanyMutation();
+  const [companyMode, setCompanyMode] = useState<"create" | "join">("create");
   const [companyName, setCompanyName] = useState("");
   const [companyDescription, setCompanyDescription] = useState("");
   const [companyWebsite, setCompanyWebsite] = useState("");
@@ -155,9 +163,10 @@ export default function OnboardingScreen() {
 
   async function handleCreateCompanyAndFinish() {
     if (!companyName.trim()) {
-      showErrorToast(t("companyProfile.nameRequired"));
+      setNameError(true);
       return;
     }
+    setNameError(false);
     try {
       await createCompany({
         name: companyName.trim(),
@@ -202,349 +211,334 @@ export default function OnboardingScreen() {
 
   if (meLoading || !me) {
     return (
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.centered}>
-          <ActivityIndicator color={colors.accent} />
+      <Screen>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+          <ActivityIndicator color={p.accent} />
         </View>
-      </SafeAreaView>
+      </Screen>
+    );
+  }
+
+  const stepIndex = Math.max(0, dotsForRole.indexOf(step));
+  const backTo: Step | null = stepIndex > 0 ? dotsForRole[stepIndex - 1] : null;
+  const cvName = me.cvUrl ? decodeURIComponent(me.cvUrl.split("/").pop() ?? "CV.pdf") : null;
+
+  async function handleCheckAgain() {
+    setChecking(true);
+    try {
+      await refetchVerification();
+    } finally {
+      setChecking(false);
+    }
+  }
+
+  const stepList: { icon: typeof Wrench; label: string }[] = isEmployer
+    ? [
+        ...(verification?.isVerified === false ? [{ icon: MailCheck, label: t("onboarding.stepVerify") }] : []),
+        { icon: Building2, label: t("onboarding.stepCompany") },
+      ]
+    : [
+        { icon: Wrench, label: t("onboarding.stepSkills") },
+        { icon: FileText, label: t("onboarding.stepCv") },
+      ];
+
+  function heading(title: string, subtitle: string) {
+    return (
+      <View style={{ gap: 6, paddingHorizontal: 4 }}>
+        <Text accessibilityRole="header" weight="bold" style={{ fontSize: 28, lineHeight: 34, letterSpacing: -0.025 * 28 }}>
+          {title}
+        </Text>
+        <Text variant="callout" tone="secondary">
+          {subtitle}
+        </Text>
+      </View>
+    );
+  }
+
+  // The one primary action of each step, pinned in the glass bar.
+  let cta: React.ReactNode = null;
+  if (step === "welcome") {
+    cta = (
+      <Button
+        block
+        size="lg"
+        title={t("onboarding.continue")}
+        loading={isEmployer && verification === undefined}
+        onPress={handleWelcomeContinue}
+      />
+    );
+  } else if (step === "skills") {
+    cta = <Button block size="lg" title={t("onboarding.continue")} onPress={() => setStep("cv")} />;
+  } else if (step === "cv") {
+    cta = <Button block size="lg" title={t("onboarding.finish")} loading={finishing} onPress={finishOnboarding} />;
+  } else if (step === "verify") {
+    cta = (
+      <Button
+        block
+        title={checking ? t("onboarding.checking") : t("onboarding.checkAgain")}
+        loading={checking}
+        onPress={handleCheckAgain}
+      />
+    );
+  } else if (step === "company" && companyMode === "create") {
+    cta = (
+      <Button
+        block
+        size="lg"
+        title={t("onboarding.finish")}
+        loading={creatingCompany || finishing}
+        onPress={handleCreateCompanyAndFinish}
+      />
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
-        {step !== "welcome" ? (
-          <Pressable
-            onPress={() => setStep(step === "cv" ? "skills" : "welcome")}
-            hitSlop={12}
-          >
-            <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
-          </Pressable>
-        ) : (
-          <View style={{ width: 24 }} />
-        )}
-
-        <View style={styles.dots}>
-          {dotsForRole.map((s) => (
-            <View key={s} style={[styles.dot, s === step && styles.dotActive]} />
-          ))}
-        </View>
-
-        <Pressable onPress={finishOnboarding} disabled={finishing} hitSlop={12}>
-          <Text style={styles.skipText}>{t("onboarding.skip")}</Text>
-        </Pressable>
-      </View>
+    <Screen safeTop={false}>
+      <OnboardingHeader
+        step={stepIndex}
+        total={dotsForRole.length}
+        onBack={backTo ? () => setStep(backTo) : undefined}
+        backLabel={t("common.back", { defaultValue: "Back" })}
+        skipLabel={t("onboarding.skip")}
+        onSkip={finishOnboarding}
+        skipDisabled={finishing}
+      />
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-          {step === "welcome" && (
+        <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: step === "welcome" ? 40 : 24, paddingBottom: ACTION_BAR_CLEARANCE, gap: step === "welcome" ? 28 : 20 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {step === "welcome" ? (
             <>
-              <View style={styles.logoBadge}>
-                <Text style={styles.logoLetter}>B</Text>
+              <View style={{ gap: 16, paddingHorizontal: 4 }}>
+                <BrandMark size={64} />
+                <Text accessibilityRole="header" variant="display">
+                  {isEmployer ? t("onboarding.employerWelcomeTitle") : t("onboarding.employeeWelcomeTitle")}
+                </Text>
+                <Text weight="regular" tone="secondary" style={{ fontSize: 17, lineHeight: 25 }}>
+                  {isEmployer ? t("onboarding.employerWelcomeSubtitle") : t("onboarding.employeeWelcomeSubtitle")}
+                </Text>
               </View>
-              <Text style={styles.title}>
-                {isEmployer ? t("onboarding.employerWelcomeTitle") : t("onboarding.employeeWelcomeTitle")}
-              </Text>
-              <Text style={styles.subtitle}>
-                {isEmployer ? t("onboarding.employerWelcomeSubtitle") : t("onboarding.employeeWelcomeSubtitle")}
-              </Text>
-              <Pressable
-                style={styles.primaryButton}
-                onPress={handleWelcomeContinue}
-                disabled={isEmployer && verification === undefined}
-              >
-                {isEmployer && verification === undefined ? (
-                  <ActivityIndicator color={colors.surface} />
-                ) : (
-                  <Text style={styles.primaryButtonText}>{t("onboarding.continue")}</Text>
-                )}
-              </Pressable>
-            </>
-          )}
-
-          {step === "skills" && (
-            <>
-              <Text style={styles.title}>{t("onboarding.skillsTitle")}</Text>
-              <Text style={styles.subtitle}>{t("onboarding.skillsSubtitle")}</Text>
-
-              <TextInput
-                style={styles.input}
-                value={search}
-                onChangeText={setSearch}
-                placeholder={t("onboarding.skillsSearchPlaceholder") as string}
-                placeholderTextColor={colors.textMuted}
-              />
-
-              <View style={styles.chipWrap}>
-                {filteredCatalog.map((item) => {
-                  const active = addedSkillNames.has(item.name.toLowerCase());
-                  return (
-                    <Pressable
-                      key={item.id}
-                      style={[styles.catalogChip, active && styles.catalogChipActive]}
-                      onPress={() => handleToggleSkill(item.name)}
-                      disabled={addingSkill}
-                    >
-                      {active && (
-                        <Ionicons name="checkmark" size={14} color={colors.surface} style={{ marginRight: 4 }} />
-                      )}
-                      <Text style={[styles.catalogChipText, active && styles.catalogChipTextActive]}>
-                        {item.name}
+              <List header={t("onboarding.whatsNext")}>
+                {stepList.map((row, idx) => (
+                  <ListRow
+                    key={row.label}
+                    icon={row.icon}
+                    title={row.label}
+                    accessory={
+                      <Text mono tone="tertiary" style={{ fontSize: 13 }}>
+                        {String(idx + 1).padStart(2, "0")}
                       </Text>
-                    </Pressable>
-                  );
-                })}
+                    }
+                  />
+                ))}
+              </List>
+            </>
+          ) : null}
+
+          {step === "skills" ? (
+            <>
+              {heading(t("onboarding.skillsTitle"), t("onboarding.skillsSubtitle"))}
+
+              <TextField value={search} onChangeText={setSearch} icon={Search} placeholder={t("onboarding.skillsSearchPlaceholder")} />
+
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                {filteredCatalog.map((item) => (
+                  <Chip
+                    key={item.id}
+                    label={item.name}
+                    selected={addedSkillNames.has(item.name.toLowerCase())}
+                    disabled={addingSkill}
+                    onPress={() => handleToggleSkill(item.name)}
+                  />
+                ))}
               </View>
 
-              <View style={styles.customSkillRow}>
-                <TextInput
-                  style={[styles.input, { flex: 1 }]}
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <TextField
+                  containerStyle={{ flex: 1, minWidth: 0 }}
                   value={customSkill}
                   onChangeText={setCustomSkill}
-                  placeholder={t("onboarding.addCustomSkillPlaceholder") as string}
-                  placeholderTextColor={colors.textMuted}
+                  placeholder={t("onboarding.addCustomSkillPlaceholder")}
                   onSubmitEditing={handleAddCustomSkill}
+                  returnKeyType="done"
                 />
-                <Pressable style={styles.addButton} onPress={handleAddCustomSkill} disabled={addingSkill}>
-                  <Text style={styles.addButtonText}>{t("onboarding.add")}</Text>
-                </Pressable>
+                <Button variant="secondary" size="lg" icon={Plus} title={t("onboarding.add")} onPress={handleAddCustomSkill} disabled={addingSkill} />
               </View>
 
-              {addedSkills.length > 0 && (
-                <View style={[styles.chipWrap, { marginTop: 16 }]}>
-                  {addedSkills.map((s) => (
-                    <SkillChip key={s.id} label={s.skill} onRemove={() => removeSkill(s.id)} />
-                  ))}
-                </View>
-              )}
-
-              <Pressable style={styles.primaryButton} onPress={() => setStep("cv")}>
-                <Text style={styles.primaryButtonText}>{t("onboarding.continue")}</Text>
-              </Pressable>
-            </>
-          )}
-
-          {step === "cv" && (
-            <>
-              <Text style={styles.title}>{t("onboarding.cvTitle")}</Text>
-              <Text style={styles.subtitle}>{t("onboarding.cvSubtitle")}</Text>
-
-              <Pressable style={styles.uploadCard} onPress={handleUploadCv} disabled={cvUploading}>
-                {cvUploading ? (
-                  <ActivityIndicator color={colors.accent} />
-                ) : (
-                  <>
-                    <Ionicons
-                      name={me.cvUrl ? "checkmark-circle" : "cloud-upload-outline"}
-                      size={28}
-                      color={colors.accent}
-                    />
-                    <Text style={styles.uploadCardText}>
-                      {me.cvUrl ? t("onboarding.cvUploaded") : t("onboarding.uploadCv")}
-                    </Text>
-                  </>
-                )}
-              </Pressable>
-
-              <Pressable style={styles.primaryButton} onPress={finishOnboarding} disabled={finishing}>
-                {finishing ? (
-                  <ActivityIndicator color={colors.surface} />
-                ) : (
-                  <Text style={styles.primaryButtonText}>{t("onboarding.finish")}</Text>
-                )}
-              </Pressable>
-            </>
-          )}
-
-          {step === "verify" && (
-            <>
-              <Text style={styles.title}>{t("onboarding.verifyTitle")}</Text>
-              <Text style={styles.subtitle}>{t("onboarding.verifySubtitle")}</Text>
-
-              <View style={styles.verifyCard}>
-                <Ionicons name="mail-unread-outline" size={28} color={colors.accent} />
-                <Pressable onPress={handleResend} disabled={resending || resent} style={{ marginTop: 10 }}>
-                  <Text style={styles.verifyResend}>
-                    {resent ? t("verifyBanner.resent") : t("verifyBanner.resend")}
+              {addedSkills.length > 0 ? (
+                <Card variant="grouped" padding={16} style={{ gap: 12 }}>
+                  <Text variant="caps" tone="tertiary">
+                    {t("onboarding.selected")} · {addedSkills.length}
                   </Text>
-                </Pressable>
-              </View>
-
-              <Pressable style={styles.primaryButton} onPress={() => refetchVerification()}>
-                <Text style={styles.primaryButtonText}>{t("onboarding.checkAgain")}</Text>
-              </Pressable>
+                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                    {addedSkills.map((sk) => (
+                      <Chip
+                        key={sk.id}
+                        variant="removable"
+                        label={sk.skill}
+                        removeLabel={`${t("onboarding.remove")} ${sk.skill}`}
+                        onRemove={() => removeSkill(sk.id)}
+                      />
+                    ))}
+                  </View>
+                </Card>
+              ) : null}
             </>
-          )}
+          ) : null}
 
-          {step === "company" && (
+          {step === "cv" ? (
             <>
-              <Text style={styles.title}>{t("onboarding.companyTitle")}</Text>
-              <Text style={styles.subtitle}>{t("onboarding.companySubtitle")}</Text>
+              {heading(t("onboarding.cvTitle"), t("onboarding.cvSubtitle"))}
 
-              <Text style={styles.label}>{t("companyProfile.name")}</Text>
-              <TextInput
-                style={styles.input}
-                value={companyName}
-                onChangeText={setCompanyName}
-                placeholder={t("companyProfile.namePlaceholder") as string}
-                placeholderTextColor={colors.textMuted}
+              {cvUploading ? (
+                <Card padding={36} style={{ alignItems: "center", gap: 12 }}>
+                  <ActivityIndicator color={p.accent} size="large" />
+                  <Text variant="headline" tone="secondary">
+                    {t("onboarding.uploading")}
+                  </Text>
+                </Card>
+              ) : cvName ? (
+                <Card padding={16} style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                  <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: p.successSoft, alignItems: "center", justifyContent: "center" }}>
+                    <Icon icon={FileCheck2} size={26} color={p.successText} />
+                  </View>
+                  <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
+                    <Text mono numberOfLines={1} style={{ fontSize: 14, lineHeight: 20 }}>
+                      {cvName}
+                    </Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                      <Icon icon={CircleCheck} size={14} color={p.successText} />
+                      <Text variant="footnote" weight="semibold" tone="success">
+                        {t("onboarding.cvUploaded")}
+                      </Text>
+                    </View>
+                  </View>
+                  <Button size="sm" variant="plain" title={t("onboarding.replace")} onPress={handleUploadCv} />
+                </Card>
+              ) : (
+                <Card onPress={handleUploadCv} accessibilityLabel={t("onboarding.uploadCv")} padding={0}>
+                  <View style={{ alignItems: "center", paddingVertical: 36, paddingHorizontal: 20, gap: 10 }}>
+                    <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: p.accentSoft, alignItems: "center", justifyContent: "center" }}>
+                      <Icon icon={Upload} size={28} color={p.accentText} />
+                    </View>
+                    <Text weight="semibold" tone="accent" style={{ fontSize: 17, lineHeight: 22 }}>
+                      {t("onboarding.uploadCv")}
+                    </Text>
+                    <Text variant="footnote" tone="tertiary">
+                      {t("onboarding.pdfOnly")}
+                    </Text>
+                  </View>
+                </Card>
+              )}
+            </>
+          ) : null}
+
+          {step === "verify" ? (
+            <>
+              {heading(t("onboarding.verifyTitle"), t("onboarding.verifySubtitle"))}
+
+              <Card padding={20} style={{ gap: 16 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                  <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: p.warningSoft, alignItems: "center", justifyContent: "center" }}>
+                    <Icon icon={MailWarning} size={22} color={p.warningText} />
+                  </View>
+                  <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+                    <Text weight="semibold">{t("verifyBanner.title")}</Text>
+                    <Text mono tone="secondary" numberOfLines={1} style={{ fontSize: 14, lineHeight: 20 }}>
+                      {me.email}
+                    </Text>
+                  </View>
+                </View>
+                <Text variant="subhead" tone="secondary">
+                  {t("verifyBanner.subtitle")}
+                </Text>
+                <Button
+                  block
+                  variant="secondary"
+                  icon={resent ? Check : undefined}
+                  title={resent ? t("verifyBanner.resent") : t("verifyBanner.resend")}
+                  loading={resending}
+                  disabled={resent}
+                  onPress={handleResend}
+                />
+              </Card>
+            </>
+          ) : null}
+
+          {step === "company" ? (
+            <>
+              {heading(t("onboarding.companyTitle"), t("onboarding.companySubtitle"))}
+
+              <SegmentedControl<"create" | "join">
+                options={[
+                  { value: "create", label: t("onboarding.companyModeCreate") },
+                  { value: "join", label: t("onboarding.companyModeJoin") },
+                ]}
+                value={companyMode}
+                onChange={setCompanyMode}
               />
 
-              <Text style={styles.label}>{t("companyProfile.description")}</Text>
-              <TextInput
-                style={[styles.input, styles.multiline]}
+              {companyMode === "join" ? <JoinCompany onJoined={finishOnboarding} /> : (
+              <>
+
+              <TextField
+                label={t("companyProfile.name")}
+                value={companyName}
+                onChangeText={(v) => {
+                  setCompanyName(v);
+                  if (nameError) setNameError(false);
+                }}
+                placeholder={t("companyProfile.namePlaceholder")}
+                error={nameError ? t("companyProfile.nameRequired") : undefined}
+              />
+              <TextField
+                label={t("companyProfile.description")}
                 value={companyDescription}
                 onChangeText={setCompanyDescription}
-                placeholder={t("companyProfile.descriptionPlaceholder") as string}
-                placeholderTextColor={colors.textMuted}
+                placeholder={t("companyProfile.descriptionPlaceholder")}
                 multiline
+                rows={3}
               />
-
-              <Text style={styles.label}>{t("companyProfile.website")}</Text>
-              <TextInput
-                style={styles.input}
+              <TextField
+                label={t("companyProfile.website")}
                 value={companyWebsite}
                 onChangeText={setCompanyWebsite}
                 placeholder="https://"
                 autoCapitalize="none"
                 keyboardType="url"
-                placeholderTextColor={colors.textMuted}
               />
-
-              <Text style={styles.label}>{t("companyProfile.industry")}</Text>
-              <TextInput
-                style={styles.input}
+              <TextField
+                label={t("companyProfile.industry")}
                 value={companyIndustry}
                 onChangeText={setCompanyIndustry}
-                placeholder={t("companyProfile.industryPlaceholder") as string}
-                placeholderTextColor={colors.textMuted}
+                placeholder={t("companyProfile.industryPlaceholder")}
               />
-
-              <Text style={styles.label}>{t("companyProfile.location")}</Text>
-              <TextInput
-                style={styles.input}
+              <TextField
+                label={t("companyProfile.location")}
                 value={companyLocation}
                 onChangeText={setCompanyLocation}
-                placeholder={t("companyProfile.locationPlaceholder") as string}
-                placeholderTextColor={colors.textMuted}
+                placeholder={t("companyProfile.locationPlaceholder")}
               />
-
-              <Text style={styles.label}>{t("companyProfile.employeeCount")}</Text>
-              <SegmentedControl
-                options={EMPLOYEE_COUNT_OPTIONS}
-                value={companyEmployeeCount ?? ""}
-                onChange={(k) => setCompanyEmployeeCount(k as EmployeeCount)}
-              />
-
-              <Pressable
-                style={styles.primaryButton}
-                onPress={handleCreateCompanyAndFinish}
-                disabled={creatingCompany || finishing}
-              >
-                {creatingCompany || finishing ? (
-                  <ActivityIndicator color={colors.surface} />
-                ) : (
-                  <Text style={styles.primaryButtonText}>{t("onboarding.finish")}</Text>
-                )}
-              </Pressable>
+              <View>
+                <Text variant="footnote" weight="medium" tone="secondary" style={{ paddingLeft: 4, marginBottom: 8 }}>
+                  {t("companyProfile.employeeCount")}
+                </Text>
+                <SegmentedControl<EmployeeCount>
+                  options={EMPLOYEE_COUNT_OPTIONS}
+                  value={companyEmployeeCount ?? ("" as EmployeeCount)}
+                  onChange={setCompanyEmployeeCount}
+                />
+              </View>
+              </>
+              )}
             </>
-          )}
+          ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+
+      {cta ? <GlassActionBar>{cta}</GlassActionBar> : null}
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  centered: { flex: 1, alignItems: "center", justifyContent: "center" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-  },
-  dots: { flexDirection: "row", gap: 6 },
-  dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.chipBorder },
-  dotActive: { backgroundColor: colors.accent, width: 18 },
-  skipText: { fontSize: 13, fontWeight: "700", color: colors.textSecondary },
-  body: { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 48 },
-  logoBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: colors.textPrimary,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
-  },
-  logoLetter: { color: colors.accent, fontWeight: "800", fontSize: 26, fontFamily: "InstrumentSerif_400Regular" },
-  title: { fontSize: 22, fontWeight: "800", color: colors.textPrimary, fontFamily: "InstrumentSerif_400Regular" },
-  subtitle: { fontSize: 14, color: colors.textSecondary, marginTop: 8, lineHeight: 20 },
-  label: { fontSize: 13, fontWeight: "700", color: colors.textSecondary, marginTop: 16, marginBottom: 8 },
-  input: {
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#EEEEF0",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 15,
-    color: colors.textPrimary,
-    marginTop: 16,
-  },
-  multiline: { minHeight: 90, textAlignVertical: "top" },
-  chipWrap: { flexDirection: "row", flexWrap: "wrap", marginTop: 16 },
-  catalogChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: colors.chipBorder,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  catalogChipActive: { backgroundColor: colors.accent, borderColor: colors.accent },
-  catalogChipText: { fontSize: 13, fontWeight: "700", color: colors.chipText },
-  catalogChipTextActive: { color: colors.surface },
-  customSkillRow: { flexDirection: "row", gap: 10, alignItems: "center" },
-  addButton: {
-    backgroundColor: colors.accentSoft,
-    borderRadius: 14,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    marginTop: 16,
-  },
-  addButtonText: { fontSize: 14, fontWeight: "700", color: colors.accentStrong },
-  uploadCard: {
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.chipBorder,
-    paddingVertical: 32,
-    marginTop: 20,
-  },
-  uploadCardText: { fontSize: 14, fontWeight: "700", color: colors.textPrimary },
-  verifyCard: {
-    alignItems: "center",
-    backgroundColor: colors.accentSoft,
-    borderRadius: 16,
-    paddingVertical: 28,
-    marginTop: 20,
-  },
-  verifyResend: { fontSize: 14, fontWeight: "700", color: colors.accent },
-  primaryButton: {
-    backgroundColor: colors.accent,
-    borderRadius: 999,
-    paddingVertical: 16,
-    alignItems: "center",
-    marginTop: 28,
-  },
-  primaryButtonText: { color: colors.surface, fontWeight: "800", fontSize: 15 },
-});

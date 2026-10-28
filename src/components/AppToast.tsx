@@ -1,49 +1,31 @@
-import { Ionicons } from "@expo/vector-icons";
-import { StyleSheet, Text, View } from "react-native";
+import { AlertCircle, Bell, CheckCircle2, type LucideIcon } from "lucide-react-native";
+import { View } from "react-native";
 import type { ToastConfig, ToastConfigParams } from "react-native-toast-message";
-import { colors } from "../theme/colors";
+import { radius } from "../theme/tokens";
+import { useTokens } from "../theme/use-tokens";
+import { GlassView, Icon, Text } from "./ds";
 
-function renderToast(
-  { text1 }: ToastConfigParams<unknown>,
-  icon: React.ComponentProps<typeof Ionicons>["name"],
-  iconColor: string
-) {
+type Kind = "success" | "error" | "info";
+
+function ToastCard({ text1, kind, glyph }: { text1?: string; kind: Kind; glyph: LucideIcon }) {
+  const p = useTokens();
+  const color = kind === "success" ? p.success : kind === "error" ? p.danger : p.accent;
   return (
-    <View style={styles.card}>
-      <Ionicons name={icon} size={20} color={iconColor} />
-      <Text style={styles.text} numberOfLines={2}>
-        {text1}
-      </Text>
+    <View style={{ width: "90%", maxWidth: 340 }}>
+      <GlassView strength="strong" intensity={80} radius={radius.pill}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 48, paddingLeft: 14, paddingRight: 18, paddingVertical: 12 }}>
+          <Icon icon={glyph} size={20} color={color} />
+          <Text weight="semibold" numberOfLines={2} style={{ flex: 1, fontSize: 14, lineHeight: 19 }}>
+            {text1}
+          </Text>
+        </View>
+      </GlassView>
     </View>
   );
 }
 
 export const toastConfig: ToastConfig = {
-  success: (params) => renderToast(params, "checkmark-circle", colors.success),
-  error: (params) => renderToast(params, "alert-circle", colors.error),
-  info: (params) => renderToast(params, "notifications", colors.accent),
+  success: ({ text1 }: ToastConfigParams<unknown>) => <ToastCard text1={text1} kind="success" glyph={CheckCircle2} />,
+  error: ({ text1 }: ToastConfigParams<unknown>) => <ToastCard text1={text1} kind="error" glyph={AlertCircle} />,
+  info: ({ text1 }: ToastConfigParams<unknown>) => <ToastCard text1={text1} kind="info" glyph={Bell} />,
 };
-
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.chipBorder,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginHorizontal: 20,
-    minHeight: 56,
-    width: "90%",
-    maxWidth: 400,
-  },
-  text: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: "700",
-    color: colors.textPrimary,
-  },
-});

@@ -1,17 +1,10 @@
 import { useRouter } from "expo-router";
+import { KeyRound, Mail, MailCheck } from "lucide-react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  ActivityIndicator,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
 import { useRequestPasswordResetMutation } from "../../store/api/authApi";
-import { colors } from "../theme/colors";
+import { AuthScreen } from "../components/auth/AuthScreen";
+import { Button, DangerBanner, StatusScreen, TextField } from "../components/ds";
 
 export default function ForgotPasswordScreen() {
   const { t } = useTranslation();
@@ -41,78 +34,38 @@ export default function ForgotPasswordScreen() {
     }
   }
 
+  if (sent) {
+    return (
+      <StatusScreen
+        icon={MailCheck}
+        tone="success"
+        title={t("forgotPassword.successTitle")}
+        message={t("forgotPassword.successMessage")}
+        primary={{ title: t("forgotPassword.backToSignIn"), onPress: () => router.replace("/login") }}
+      />
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
-        <Text style={styles.title}>{t("forgotPassword.title")}</Text>
-
-        {sent ? (
-          <>
-            <Text style={styles.subtitle}>{t("forgotPassword.successMessage")}</Text>
-            <Pressable style={styles.button} onPress={() => router.replace("/")}>
-              <Text style={styles.buttonText}>{t("forgotPassword.backToSignIn")}</Text>
-            </Pressable>
-          </>
-        ) : (
-          <View style={styles.form}>
-            <Text style={styles.subtitle}>{t("forgotPassword.subtitle")}</Text>
-            <TextInput
-              value={email}
-              onChangeText={setEmail}
-              placeholder={t("forgotPassword.emailPlaceholder") as string}
-              placeholderTextColor={colors.textMuted}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              style={styles.input}
-            />
-
-            {error && <Text style={styles.error}>{error}</Text>}
-
-            <Pressable style={styles.button} onPress={handleSubmit} disabled={submitting}>
-              {submitting ? (
-                <ActivityIndicator color={colors.surface} />
-              ) : (
-                <Text style={styles.buttonText}>{t("forgotPassword.submit")}</Text>
-              )}
-            </Pressable>
-
-            <Pressable style={styles.linkRow} onPress={() => router.replace("/")}>
-              <Text style={styles.linkAccent}>{t("forgotPassword.backToSignIn")}</Text>
-            </Pressable>
-          </View>
-        )}
-      </View>
-    </SafeAreaView>
+    <AuthScreen
+      back
+      backLabel={t("common.back", { defaultValue: "Back" })}
+      icon={KeyRound}
+      title={t("forgotPassword.title")}
+      subtitle={t("forgotPassword.subtitle")}
+    >
+      {error ? <DangerBanner message={error} /> : null}
+      <TextField
+        value={email}
+        onChangeText={setEmail}
+        icon={Mail}
+        placeholder={t("forgotPassword.emailPlaceholder")}
+        autoCapitalize="none"
+        autoComplete="email"
+        keyboardType="email-address"
+        textContentType="emailAddress"
+      />
+      <Button block size="lg" title={t("forgotPassword.submit")} loading={submitting} onPress={handleSubmit} />
+    </AuthScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  container: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24 },
-  title: { color: colors.textPrimary, fontSize: 22, fontWeight: "800", marginBottom: 12, textAlign: "center" },
-  subtitle: { color: colors.textSecondary, fontSize: 14, textAlign: "center", marginBottom: 20, lineHeight: 20 },
-  form: { width: "100%", maxWidth: 360, gap: 14 },
-  input: {
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 15,
-    color: colors.textPrimary,
-    borderWidth: 1,
-    borderColor: "#EEEEF0",
-  },
-  button: {
-    backgroundColor: colors.accent,
-    borderRadius: 14,
-    paddingVertical: 15,
-    alignItems: "center",
-    marginTop: 6,
-    width: "100%",
-    maxWidth: 360,
-  },
-  buttonText: { color: colors.surface, fontWeight: "700", fontSize: 15 },
-  error: { color: "#D64545", fontSize: 13, textAlign: "center" },
-  linkRow: { alignItems: "center", marginTop: 4 },
-  linkAccent: { color: colors.accent, fontWeight: "700", fontSize: 13 },
-});

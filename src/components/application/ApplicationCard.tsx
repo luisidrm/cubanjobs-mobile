@@ -1,8 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Calendar, ChevronRight } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { colors } from "../../theme/colors";
+import { View } from "react-native";
+import { useTokens } from "../../theme/use-tokens";
 import type { ApplicationWithJob } from "../../types/application";
+import { Card, Icon, PressableScale, Text } from "../ds";
 import { StatusBadge } from "./StatusBadge";
 
 interface Props {
@@ -11,54 +12,57 @@ interface Props {
   onWithdraw?: () => void;
 }
 
+/** Job header (tile, title, company) + status badge; hairline; 48pt footer with date and Withdraw (pending / reviewed only). */
 export function ApplicationCard({ application, onPress, onWithdraw }: Props) {
   const { t, i18n } = useTranslation();
+  const p = useTokens();
   const date = new Date(application.createdAt).toLocaleDateString(i18n.language, {
     month: "short",
-    day: "2-digit",
-    year: "numeric",
+    day: "numeric",
   });
-  const canWithdraw = onWithdraw && application.status !== "withdrawn";
+  const canWithdraw = !!onWithdraw && (application.status === "pending" || application.status === "reviewed");
 
   return (
-    <Pressable style={styles.card} onPress={onPress}>
-      <View style={styles.row}>
-        <View style={styles.left}>
-          <Text style={styles.title}>{application.job.title}</Text>
-          <Text style={styles.company}>{application.job.company?.name ?? ""}</Text>
+    <Card onPress={onPress} accessibilityLabel={application.job.title} padding={0} style={{ marginBottom: 14 }}>
+      <View style={{ padding: 16, flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: p.accentSoft, alignItems: "center", justifyContent: "center" }}>
+          <Text weight="bold" tone="accent" style={{ fontSize: 18, lineHeight: 22 }}>
+            {(application.job.company?.name ?? "?").charAt(0).toUpperCase()}
+          </Text>
         </View>
-        <StatusBadge status={application.status} />
-      </View>
-      <View style={styles.footer}>
-        <Text style={styles.date}>{t("activity.appliedOn", { date })}</Text>
-        <View style={styles.footerRight}>
-          {canWithdraw && (
-            <Pressable onPress={onWithdraw} hitSlop={8}>
-              <Text style={styles.withdrawText}>{t("activity.withdraw")}</Text>
-            </Pressable>
-          )}
-          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+        <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+          <Text weight="semibold" numberOfLines={1} style={{ fontSize: 16, lineHeight: 21 }}>
+            {application.job.title}
+          </Text>
+          <Text variant="subhead" tone="secondary" numberOfLines={1}>
+            {application.job.company?.name ?? ""}
+          </Text>
         </View>
+        <View style={{ alignItems: "flex-end", gap: 6 }}>
+          <StatusBadge status={application.status} />
+        </View>
+        <Icon icon={ChevronRight} size={18} color={p.text3} />
       </View>
-    </Pressable>
+      <View style={{ height: 1, backgroundColor: p.separator }} />
+      <View style={{ height: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingLeft: 16, paddingRight: 8 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Icon icon={Calendar} size={14} color={p.text3} />
+          <Text variant="footnote" tone="tertiary">
+            {t("activity.appliedOn", { date })}
+          </Text>
+        </View>
+        {canWithdraw ? (
+          <PressableScale
+            accessibilityRole="button"
+            onPress={onWithdraw}
+            style={{ minHeight: 44, paddingHorizontal: 12, justifyContent: "center", borderRadius: 14 }}
+          >
+            <Text variant="subhead" weight="semibold" tone="danger">
+              {t("activity.withdraw")}
+            </Text>
+          </PressableScale>
+        ) : null}
+      </View>
+    </Card>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 18,
-    padding: 18,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: "#EEEEF0",
-  },
-  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
-  left: { flex: 1, marginRight: 12 },
-  title: { fontSize: 17, fontWeight: "700", color: colors.textPrimary },
-  company: { fontSize: 14, color: colors.textSecondary, marginTop: 2 },
-  footer: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 14 },
-  footerRight: { flexDirection: "row", alignItems: "center", gap: 14 },
-  date: { fontSize: 13, color: colors.textMuted },
-  withdrawText: { fontSize: 13, fontWeight: "700", color: "#D64545" },
-});

@@ -19,6 +19,7 @@ export interface Job {
   jobType: JobType | null;
   isRemote: boolean;
   viewCount: number;
+  coverImageUrl: string | null;
   createdAt: string;
   company: JobCompany;
 }
@@ -41,6 +42,7 @@ export interface EmployerJob {
   status: JobStatus;
   expiresAt: string | null;
   viewCount: number;
+  coverImageUrl: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -54,6 +56,7 @@ export interface JobSearchFilters {
   q?: string;
   isRemote?: boolean;
   location?: string;
+  companyId?: string;
   currency?: Currency;
   jobType?: JobType;
   tagIds?: string;

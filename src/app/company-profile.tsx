@@ -1,42 +1,34 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
+import { Building2, Upload } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import {
   useCreateCompanyMutation,
   useGetMyCompaniesQuery,
   useUpdateCompanyMutation,
   useUploadCompanyLogoMutation,
 } from "../../store/api/companiesApi";
-import { SegmentedControl } from "../components/application/SegmentedControl";
-import { appendFilePart } from "../lib/upload";
+import { Button, Icon, NavBar, Screen, SegmentedControl, Text, TextField, ACTION_BAR_CLEARANCE, GlassActionBar } from "../components/ds";
 import { showErrorToast, showSuccessToast } from "../lib/toast";
-import { colors } from "../theme/colors";
+import { appendFilePart } from "../lib/upload";
+import { RenewalNotice } from "../components/plans/RenewalNotice";
+import { useTokens } from "../theme/use-tokens";
 import type { EmployeeCount } from "../types/company";
+import { goBack } from "../lib/navigation";
 
-const EMPLOYEE_COUNT_OPTIONS: { key: EmployeeCount; label: string }[] = [
-  { key: "1-10", label: "1-10" },
-  { key: "11-50", label: "11-50" },
-  { key: "51-200", label: "51-200" },
-  { key: "200+", label: "200+" },
+const EMPLOYEE_COUNT_OPTIONS: { value: EmployeeCount; label: string }[] = [
+  { value: "1-10", label: "1-10" },
+  { value: "11-50", label: "11-50" },
+  { value: "51-200", label: "51-200" },
+  { value: "200+", label: "200+" },
 ];
 
 export default function CompanyProfileScreen() {
   const { t } = useTranslation();
+  const p = useTokens();
   const router = useRouter();
 
   const { data: companies, isLoading } = useGetMyCompaniesQuery();
@@ -119,114 +111,93 @@ export default function CompanyProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="chevron-back" size={26} color={colors.textPrimary} />
-        </Pressable>
-        <Text style={styles.headerTitle}>{t("companyProfile.title")}</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+    <Screen safeTop={false}>
+      <NavBar back title={t("companyProfile.title")} />
 
       {isLoading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator color={colors.accent} />
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+          <ActivityIndicator color={p.accent} />
         </View>
       ) : (
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-          <ScrollView contentContainerStyle={styles.body}>
-            {company && (
-              <View style={styles.logoSection}>
-                <View style={styles.logo}>
+          <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: ACTION_BAR_CLEARANCE, gap: 20 }}>
+            {company ? (
+              <View style={{ alignItems: "center", gap: 10 }}>
+                <View
+                  style={{
+                    width: 84,
+                    height: 84,
+                    borderRadius: 24,
+                    backgroundColor: p.accentSoft,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    overflow: "hidden",
+                  }}
+                >
                   {company.logoUrl ? (
-                    <Image source={{ uri: company.logoUrl }} style={styles.logoImage} />
+                    <Image source={{ uri: company.logoUrl }} style={{ width: "100%", height: "100%" }} />
                   ) : (
-                    <Ionicons name="business" size={28} color={colors.accent} />
+                    <Icon icon={Building2} size={32} color={p.accent} />
                   )}
                 </View>
-                <Pressable style={styles.editButton} onPress={handleUploadLogo} disabled={uploadingLogo}>
-                  {uploadingLogo ? (
-                    <ActivityIndicator size="small" color={colors.textPrimary} />
-                  ) : (
-                    <>
-                      <Ionicons name="cloud-upload-outline" size={16} color={colors.textPrimary} />
-                      <Text style={styles.editText}>{t("companyProfile.uploadLogo")}</Text>
-                    </>
-                  )}
-                </Pressable>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  icon={Upload}
+                  title={t("companyProfile.uploadLogo")}
+                  loading={uploadingLogo}
+                  onPress={handleUploadLogo}
+                />
+                {company.planTier !== "free" ? (
+                  <View style={{ alignItems: "center" }}>
+                    <RenewalNotice company={company} />
+                  </View>
+                ) : null}
               </View>
-            )}
+            ) : null}
 
-            <Text style={styles.label}>{t("companyProfile.name")}</Text>
-            <TextInput style={styles.input} value={name} onChangeText={setName} placeholder={t("companyProfile.namePlaceholder")} placeholderTextColor={colors.textMuted} />
+            <TextField label={t("companyProfile.name")} value={name} onChangeText={setName} placeholder={t("companyProfile.namePlaceholder")} />
 
-            <Text style={styles.label}>{t("companyProfile.description")}</Text>
-            <TextInput
-              style={[styles.input, styles.multiline]}
+            <TextField
+              label={t("companyProfile.description")}
               value={description}
               onChangeText={setDescription}
               placeholder={t("companyProfile.descriptionPlaceholder")}
-              placeholderTextColor={colors.textMuted}
               multiline
+              rows={4}
             />
 
-            <Text style={styles.label}>{t("companyProfile.website")}</Text>
-            <TextInput style={styles.input} value={website} onChangeText={setWebsite} placeholder="https://" autoCapitalize="none" keyboardType="url" placeholderTextColor={colors.textMuted} />
+            <TextField label={t("companyProfile.website")} value={website} onChangeText={setWebsite} placeholder="https://" autoCapitalize="none" keyboardType="url" />
 
-            <Text style={styles.label}>{t("companyProfile.industry")}</Text>
-            <TextInput style={styles.input} value={industry} onChangeText={setIndustry} placeholder={t("companyProfile.industryPlaceholder")} placeholderTextColor={colors.textMuted} />
+            <TextField label={t("companyProfile.industry")} value={industry} onChangeText={setIndustry} placeholder={t("companyProfile.industryPlaceholder")} />
 
-            <Text style={styles.label}>{t("companyProfile.location")}</Text>
-            <TextInput style={styles.input} value={location} onChangeText={setLocation} placeholder={t("companyProfile.locationPlaceholder")} placeholderTextColor={colors.textMuted} />
+            <TextField label={t("companyProfile.location")} value={location} onChangeText={setLocation} placeholder={t("companyProfile.locationPlaceholder")} />
 
-            <Text style={styles.label}>{t("companyProfile.employeeCount")}</Text>
-            <SegmentedControl
-              options={EMPLOYEE_COUNT_OPTIONS}
-              value={employeeCount ?? ""}
-              onChange={(k) => setEmployeeCount(k as EmployeeCount)}
-            />
+            <View>
+              <Text variant="footnote" weight="medium" tone="secondary" style={{ paddingLeft: 4, marginBottom: 8 }}>
+                {t("companyProfile.employeeCount")}
+              </Text>
+              <SegmentedControl<EmployeeCount>
+                options={EMPLOYEE_COUNT_OPTIONS}
+                value={employeeCount ?? ("" as EmployeeCount)}
+                onChange={setEmployeeCount}
+              />
+            </View>
 
-            <Pressable style={styles.saveButton} onPress={handleSave} disabled={saving}>
-              {saving ? (
-                <ActivityIndicator color={colors.surface} />
-              ) : (
-                <Text style={styles.saveButtonText}>{company ? t("companyProfile.saveChanges") : t("companyProfile.create")}</Text>
-              )}
-            </Pressable>
+            {/* Back is handled by the NavBar; kept explicit for accessibility after creating a company. */}
+            {company ? <Button block variant="plain" title={t("jobDetails.cancel")} onPress={() => goBack(router)} /> : null}
           </ScrollView>
         </KeyboardAvoidingView>
       )}
-    </SafeAreaView>
+      <GlassActionBar>
+        <Button
+          block
+          size="lg"
+          title={company ? t("companyProfile.saveChanges") : t("companyProfile.create")}
+          loading={saving}
+          onPress={handleSave}
+        />
+      </GlassActionBar>
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  header: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 20, paddingVertical: 14, backgroundColor: colors.surface,
-  },
-  headerTitle: { fontSize: 17, fontWeight: "800", color: colors.textPrimary, fontFamily: "InstrumentSerif_400Regular" },
-  headerSpacer: { width: 26 },
-  centered: { flex: 1, alignItems: "center", justifyContent: "center" },
-  body: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 },
-  logoSection: { alignItems: "center", marginBottom: 24, gap: 10 },
-  logo: {
-    width: 72, height: 72, borderRadius: 20, backgroundColor: colors.accentSoft,
-    alignItems: "center", justifyContent: "center", overflow: "hidden",
-  },
-  logoImage: { width: "100%", height: "100%" },
-  editButton: { flexDirection: "row", alignItems: "center", gap: 6 },
-  editText: { fontWeight: "700", fontSize: 13, color: colors.textPrimary },
-  label: { fontSize: 13, fontWeight: "700", color: colors.textSecondary, marginTop: 16, marginBottom: 8 },
-  input: {
-    backgroundColor: colors.surface, borderRadius: 14, borderWidth: 1, borderColor: "#EEEEF0",
-    paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: colors.textPrimary,
-  },
-  multiline: { minHeight: 90, textAlignVertical: "top" },
-  saveButton: {
-    backgroundColor: colors.accent, borderRadius: 999, paddingVertical: 16,
-    alignItems: "center", marginTop: 28,
-  },
-  saveButtonText: { color: colors.surface, fontWeight: "800", fontSize: 15 },
-});

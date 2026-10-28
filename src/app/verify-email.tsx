@@ -1,10 +1,12 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { MailCheck, MailX } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
-import { useVerifyEmailMutation } from "../../store/api/authApi";
+import { useResendVerificationEmailMutation, useVerifyEmailMutation } from "../../store/api/authApi";
 import { useGetMeQuery } from "../../store/api/usersApi";
-import { colors } from "../theme/colors";
+import { StatusScreen } from "../components/ds";
+import { showErrorToast, showSuccessToast } from "../lib/toast";
+import { homeFor } from "../lib/home";
 
 type VerifyState = "verifying" | "success" | "invalid";
 
@@ -15,8 +17,9 @@ export default function VerifyEmailScreen() {
 
   const [state, setState] = useState<VerifyState>("verifying");
   const [verifyEmail] = useVerifyEmailMutation();
+  const [resend] = useResendVerificationEmailMutation();
   const { data: me } = useGetMeQuery();
-  const homeRoute = me?.role === "employer" ? "/my-jobs" : "/jobs";
+  const homeRoute = homeFor(me?.role);
 
   useEffect(() => {
     if (!token) {
@@ -35,52 +38,39 @@ export default function VerifyEmailScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  async function handleResend() {
+    try {
+      await resend().unwrap();
+      showSuccessToast(t("verifyBanner.resent"));
+    } catch {
+      showErrorToast(t("verifyEmail.genericError"));
+    }
+  }
+
+  if (state === "verifying") {
+    return <StatusScreen spinner message={t("verifyEmail.verifying")} />;
+  }
+
+  if (state === "success") {
+    return (
+      <StatusScreen
+        icon={MailCheck}
+        tone="success"
+        title={t("verifyEmail.successTitle")}
+        message={t("verifyEmail.successMessage")}
+        primary={{ title: t("verifyEmail.continue"), onPress: () => router.replace(homeRoute) }}
+      />
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
-        {state === "verifying" && (
-          <>
-            <ActivityIndicator color={colors.accent} size="large" />
-            <Text style={styles.subtitle}>{t("verifyEmail.verifying")}</Text>
-          </>
-        )}
-
-        {state === "success" && (
-          <>
-            <Text style={styles.title}>{t("verifyEmail.successTitle")}</Text>
-            <Text style={styles.subtitle}>{t("verifyEmail.successMessage")}</Text>
-            <Pressable style={styles.button} onPress={() => router.replace(homeRoute)}>
-              <Text style={styles.buttonText}>{t("verifyEmail.continue")}</Text>
-            </Pressable>
-          </>
-        )}
-
-        {state === "invalid" && (
-          <>
-            <Text style={styles.title}>{t("verifyEmail.invalidTitle")}</Text>
-            <Text style={styles.subtitle}>{t("verifyEmail.invalidMessage")}</Text>
-            <Pressable style={styles.button} onPress={() => router.replace(homeRoute)}>
-              <Text style={styles.buttonText}>{t("verifyEmail.continue")}</Text>
-            </Pressable>
-          </>
-        )}
-      </View>
-    </SafeAreaView>
+    <StatusScreen
+      icon={MailX}
+      tone="danger"
+      title={t("verifyEmail.invalidTitle")}
+      message={t("verifyEmail.invalidMessage")}
+      primary={{ title: t("verifyBanner.resend"), onPress: handleResend }}
+      secondary={{ title: t("forgotPassword.backToSignIn"), onPress: () => router.replace("/login") }}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  container: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24, gap: 14 },
-  title: { color: colors.textPrimary, fontSize: 22, fontWeight: "800", textAlign: "center" },
-  subtitle: { color: colors.textSecondary, fontSize: 14, textAlign: "center", lineHeight: 20 },
-  button: {
-    backgroundColor: colors.accent,
-    borderRadius: 14,
-    paddingVertical: 15,
-    paddingHorizontal: 32,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  buttonText: { color: colors.surface, fontWeight: "700", fontSize: 15 },
-});

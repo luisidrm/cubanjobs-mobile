@@ -3,12 +3,15 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE, persistReducer, persistStore } from 'redux-persist';
 import { adminApi } from './api/adminApi';
+import { adminPaymentsApi } from './api/adminPaymentsApi';
 import { applicationsApi } from './api/applicationApi';
 import { authApi } from './api/authApi';
 import { billingApi } from './api/billingApi';
 import { companiesApi } from './api/companiesApi';
+import { freelancerApi } from './api/freelancerApi';
 import { jobsApi } from './api/jobsApi';
 import { notificationsApi } from './api/notificationsApi';
+import { plansApi } from './api/plansApi';
 import { savedJobsApi } from './api/savedJobsApi';
 import { usersApi } from './api/usersApi';
 import authReducer from './slices/authSlice';
@@ -23,7 +26,10 @@ const rootReducer = combineReducers({
   [companiesApi.reducerPath]: companiesApi.reducer,
   [notificationsApi.reducerPath]: notificationsApi.reducer,
   [billingApi.reducerPath]: billingApi.reducer,
+  [plansApi.reducerPath]: plansApi.reducer,
   [adminApi.reducerPath]: adminApi.reducer,
+  [adminPaymentsApi.reducerPath]: adminPaymentsApi.reducer,
+  [freelancerApi.reducerPath]: freelancerApi.reducer,
   // Add your standard UI slices here
 });
 
@@ -51,7 +57,10 @@ export const store = configureStore({
       companiesApi.middleware,
       notificationsApi.middleware,
       billingApi.middleware,
-      adminApi.middleware),
+      plansApi.middleware,
+      adminApi.middleware,
+      adminPaymentsApi.middleware,
+      freelancerApi.middleware),
 });
 
 export const persistor = persistStore(store);

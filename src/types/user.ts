@@ -28,6 +28,9 @@ export interface UserProfile {
   linkedinUrl: string | null;
   expoPushToken: string | null;
   onboardingCompletedAt: string | null;
+  /** Employee plan: "paid" unlocks applying. planExpiresAt null on paid = no expiry. */
+  plan: "free" | "paid";
+  planExpiresAt: string | null;
   skills: UserSkill[];
   experience: WorkExperience[];
 }

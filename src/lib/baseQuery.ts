@@ -7,6 +7,10 @@ const rawBaseQuery = fetchBaseQuery({
     prepareHeaders: async (headers) => {
         // Automatically injects custom anti-csrf headers if SuperTokens requires them
         headers.set('rid', 'session');
+        // Lets the backend build emailed links (password reset, email
+        // verification) against this app's own domain rather than the web
+        // app's — see back/src/lib/supertokens.ts.
+        headers.set('x-platform', 'native');
         return headers;
     },
 });
@@ -40,9 +44,9 @@ export const baseQuery: BaseQueryFn<
                 await SuperTokens.signOut();
             }
         } catch (refreshError) {
-            // Refresh failed, clear session
-            await SuperTokens.signOut();
-            return { error: { status: 'CUSTOM_ERROR', error: 'Session expired' } };
+            // Throws on network/server failures; a dead session returns false
+            // above. Don't sign the user out over a transient failure.
+            return { error: { status: 'FETCH_ERROR', error: 'Could not refresh the session' } };
         }
     }
 

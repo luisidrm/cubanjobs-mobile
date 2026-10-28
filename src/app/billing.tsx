@@ -1,14 +1,16 @@
-import { Ionicons } from "@expo/vector-icons";
-import * as WebBrowser from "expo-web-browser";
 import { useRouter } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import { CheckCircle2 } from "lucide-react-native";
+import { ActivityIndicator, Platform, ScrollView, View } from "react-native";
 import { useCreateCheckoutSessionMutation, useCreatePortalSessionMutation } from "../../store/api/billingApi";
 import { useGetMyCompaniesQuery } from "../../store/api/companiesApi";
 import { getErrorMessage } from "../lib/errors";
 import { showErrorToast, showInfoToast } from "../lib/toast";
-import { colors } from "../theme/colors";
+import { Badge, Button, Card, CardSkeletons, Icon, NavBar, Screen, Text } from "../components/ds";
+import { RenewalNotice } from "../components/plans/RenewalNotice";
+import { useTokens } from "../theme/use-tokens";
 import type { CompanyPlan } from "../types/company";
 
 const PAID_TIERS: readonly CompanyPlan[] = ["basic", "pro"];
@@ -29,10 +31,12 @@ const BILLING_RETURN_URL =
 
 export default function BillingScreen() {
   const { t } = useTranslation();
+  const p = useTokens();
   const router = useRouter();
 
   const { data: companies, isLoading, refetch } = useGetMyCompaniesQuery();
   const company = companies?.[0];
+  const isOwner = company?.memberRole === "owner";
 
   const [createCheckoutSession] = useCreateCheckoutSessionMutation();
   const [createPortalSession] = useCreatePortalSessionMutation();
@@ -83,128 +87,76 @@ export default function BillingScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="chevron-back" size={26} color={colors.textPrimary} />
-        </Pressable>
-        <Text style={styles.headerTitle}>{t("billing.title")}</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+    <Screen safeTop={false}>
+      <NavBar back title={t("billing.title")} />
 
       {isLoading || !company ? (
-        <View style={styles.centered}>
-          <ActivityIndicator color={colors.accent} />
+        <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
+          <CardSkeletons height={140} />
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.body}>
-          <View style={styles.currentPlanCard}>
-            <Text style={styles.currentPlanLabel}>{t("billing.currentPlanLabel")}</Text>
-            <Text style={styles.currentPlanName}>{t(`billing.tiers.${company.planTier}.name`)}</Text>
-            {company.currentPeriodEnd && company.planTier !== "free" && (
-              <Text style={styles.renewsOn}>
-                {t("billing.renewsOn", { date: new Date(company.currentPeriodEnd).toLocaleDateString() })}
-              </Text>
-            )}
-          </View>
+        <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40, gap: 14 }}>
+          <Card variant="grouped" padding={18} style={{ backgroundColor: p.accentSoft, gap: 4 }}>
+            <Text variant="caps" tone="accent">
+              {t("billing.currentPlanLabel")}
+            </Text>
+            <Text variant="title1">{t(`billing.tiers.${company.planTier}.name`)}</Text>
+            <RenewalNotice company={company} />
+          </Card>
 
-          {(["free", "basic", "pro"] as const).map((tier) => (
-            <View key={tier} style={[styles.tierCard, company.planTier === tier && styles.tierCardActive]}>
-              <View style={styles.tierHeader}>
-                <Text style={styles.tierName}>{t(`billing.tiers.${tier}.name`)}</Text>
-                <Text style={styles.tierPrice}>{t(`billing.tiers.${tier}.price`)}</Text>
-              </View>
-              <View style={styles.tierFeature}>
-                <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-                <Text style={styles.tierFeatureText}>{t(`billing.tiers.${tier}.feature1`)}</Text>
-              </View>
-              <View style={styles.tierFeature}>
-                <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-                <Text style={styles.tierFeatureText}>{t(`billing.tiers.${tier}.feature2`)}</Text>
-              </View>
-
-              {company.planTier === tier ? (
-                <View style={styles.currentBadge}>
-                  <Text style={styles.currentBadgeText}>{t("billing.currentPlanLabel")}</Text>
+          {(["free", "basic", "pro"] as const).map((tier) => {
+            const isCurrent = company.planTier === tier;
+            return (
+              <Card
+                key={tier}
+                style={[{ gap: 10 }, isCurrent ? { borderColor: p.accent, borderWidth: 2 } : null]}
+              >
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                  <Text variant="title3">{t(`billing.tiers.${tier}.name`)}</Text>
+                  <Text variant="headline" tone="accent" mono tabular>
+                    {t(`billing.tiers.${tier}.price`)}
+                  </Text>
                 </View>
-              ) : (
-                PAID_TIERS.includes(tier) && (
-                  <Pressable
-                    style={styles.upgradeButton}
-                    onPress={() => handleUpgrade(tier as "basic" | "pro")}
-                    disabled={busyPlan !== null}
-                  >
-                    {busyPlan === tier ? (
-                      <ActivityIndicator color={colors.surface} />
-                    ) : (
-                      <Text style={styles.upgradeButtonText}>
-                        {t("billing.upgradeTo", { plan: t(`billing.tiers.${tier}.name`) })}
-                      </Text>
-                    )}
-                  </Pressable>
-                )
-              )}
-            </View>
-          ))}
+                {(["feature1", "feature2"] as const).map((f) => (
+                  <View key={f} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                    <Icon icon={CheckCircle2} size={16} color={p.success} />
+                    <Text variant="subhead" tone="secondary" style={{ flex: 1 }}>
+                      {t(`billing.tiers.${tier}.${f}`)}
+                    </Text>
+                  </View>
+                ))}
 
-          {company.stripeCustomerId && (
-            <Pressable
-              style={styles.manageButton}
-              onPress={handleManageSubscription}
+                {isCurrent ? (
+                  <Badge tone="accent">{t("billing.currentPlanLabel")}</Badge>
+                ) : isOwner && PAID_TIERS.includes(tier) ? (
+                  <Button
+                    block
+                    title={t("billing.upgradeTo", { plan: t(`billing.tiers.${tier}.name`) })}
+                    loading={busyPlan === tier}
+                    disabled={busyPlan !== null}
+                    onPress={() => handleUpgrade(tier as "basic" | "pro")}
+                  />
+                ) : null}
+              </Card>
+            );
+          })}
+
+          {isOwner ? (
+            <Button block variant="secondary" title={t("plans.payTransfermovil")} onPress={() => router.push("/plans")} />
+          ) : null}
+
+          {isOwner && company.stripeCustomerId ? (
+            <Button
+              block
+              variant="tinted"
+              title={t("billing.manageSubscription")}
+              loading={busyPlan === "portal"}
               disabled={busyPlan !== null}
-            >
-              {busyPlan === "portal" ? (
-                <ActivityIndicator color={colors.textPrimary} />
-              ) : (
-                <Text style={styles.manageButtonText}>{t("billing.manageSubscription")}</Text>
-              )}
-            </Pressable>
-          )}
+              onPress={handleManageSubscription}
+            />
+          ) : null}
         </ScrollView>
       )}
-    </SafeAreaView>
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  header: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 20, paddingVertical: 14, backgroundColor: colors.surface,
-  },
-  headerTitle: { fontSize: 17, fontWeight: "800", color: colors.textPrimary, fontFamily: "InstrumentSerif_400Regular" },
-  headerSpacer: { width: 26 },
-  centered: { flex: 1, alignItems: "center", justifyContent: "center" },
-  body: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 },
-  currentPlanCard: {
-    backgroundColor: colors.accentSoft, borderRadius: 18, padding: 18, marginBottom: 20,
-  },
-  currentPlanLabel: { fontSize: 12, fontWeight: "700", color: colors.textSecondary },
-  currentPlanName: { fontSize: 22, fontWeight: "800", color: colors.textPrimary, marginTop: 4 },
-  renewsOn: { fontSize: 13, color: colors.textSecondary, marginTop: 6 },
-  tierCard: {
-    backgroundColor: colors.surface, borderRadius: 18, padding: 18, marginBottom: 14,
-    borderWidth: 1, borderColor: "#EEEEF0",
-  },
-  tierCardActive: { borderColor: colors.accent, borderWidth: 2 },
-  tierHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
-  tierName: { fontSize: 17, fontWeight: "800", color: colors.textPrimary },
-  tierPrice: { fontSize: 15, fontWeight: "700", color: colors.accent, fontFamily: "IBMPlexMono_600SemiBold" },
-  tierFeature: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 6 },
-  tierFeatureText: { fontSize: 13, color: colors.textSecondary },
-  currentBadge: {
-    alignSelf: "flex-start", backgroundColor: colors.accentSoft, borderRadius: 999,
-    paddingHorizontal: 14, paddingVertical: 6, marginTop: 10,
-  },
-  currentBadgeText: { fontSize: 12, fontWeight: "700", color: colors.textPrimary },
-  upgradeButton: {
-    backgroundColor: colors.accent, borderRadius: 999, paddingVertical: 12,
-    alignItems: "center", marginTop: 10,
-  },
-  upgradeButtonText: { color: colors.surface, fontWeight: "800", fontSize: 14 },
-  manageButton: {
-    borderWidth: 1, borderColor: colors.chipBorder, borderRadius: 999, paddingVertical: 14,
-    alignItems: "center", marginTop: 6,
-  },
-  manageButtonText: { color: colors.textPrimary, fontWeight: "700", fontSize: 14 },
-});

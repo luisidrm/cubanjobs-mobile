@@ -1,14 +1,15 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { Lock, Search, SearchX, WifiOff } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FlatList, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, ScrollView, View } from "react-native";
 import { useGetMyCompaniesQuery } from "../../../store/api/companiesApi";
 import { useGetWorkerSkillsQuery, useSearchWorkersQuery } from "../../../store/api/usersApi";
+import { Button, CardSkeletons, EmptyState, NavBar, Screen, TextField } from "../../components/ds";
 import { WorkerCard } from "../../components/Jobs/WorkerCard";
 import { FilterChip } from "../../components/tabs/FilterChip";
 import { hasCandidateSearchAccess } from "../../lib/plans";
-import { colors } from "../../theme/colors";
+import { TAB_BAR_CLEARANCE } from "../../theme/tokens";
 import type { WorkerSearchFilters } from "../../types/user";
 
 export default function ExploreWorkersScreen() {
@@ -46,53 +47,43 @@ export default function ExploreWorkersScreen() {
 
   if (!companyLoading && !hasAccess) {
     return (
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>{t("exploreWorkers.title")}</Text>
-        </View>
-        <View style={styles.upgradePrompt}>
-          <Ionicons name="lock-closed-outline" size={40} color={colors.textMuted} />
-          <Text style={styles.upgradeTitle}>{t("exploreWorkers.upgradeTitle")}</Text>
-          <Text style={styles.upgradeMessage}>{t("exploreWorkers.upgradeMessage")}</Text>
-          <Pressable style={styles.upgradeButton} onPress={() => router.push("/billing")}>
-            <Text style={styles.upgradeButtonText}>{t("exploreWorkers.upgradeButton")}</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
+      <Screen safeTop={false}>
+        <NavBar large title={t("exploreWorkers.title")} />
+        <EmptyState
+          icon={Lock}
+          message={`${t("exploreWorkers.upgradeTitle")}. ${t("exploreWorkers.upgradeMessage")}`}
+          actionLabel={t("exploreWorkers.upgradeButton")}
+          onAction={() => router.push("/billing")}
+        />
+      </Screen>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t("exploreWorkers.title")}</Text>
-      </View>
+    <Screen safeTop={false}>
+      <NavBar large title={t("exploreWorkers.title")} subtitle={t("exploreWorkers.subtitle")} />
 
-      <FlatList
+      <FlatList showsVerticalScrollIndicator={false}
         data={workers ?? []}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: TAB_BAR_CLEARANCE }}
+        keyboardShouldPersistTaps="handled"
         ListHeaderComponent={
-          <>
-            <Text style={styles.subtitle}>{t("exploreWorkers.subtitle")}</Text>
+          <View style={{ gap: 16, paddingBottom: 12 }}>
+            <TextField
+              value={query}
+              onChangeText={setQuery}
+              icon={Search}
+              placeholder={t("exploreWorkers.searchPlaceholder")}
+              returnKeyType="search"
+            />
 
-            <View style={styles.searchBar}>
-              <Ionicons name="search" size={20} color={colors.textMuted} />
-              <TextInput
-                value={query}
-                onChangeText={setQuery}
-                placeholder={t("exploreWorkers.searchPlaceholder") as string}
-                placeholderTextColor={colors.textMuted}
-                style={styles.searchInput}
-              />
-            </View>
-
-            {skillsList && skillsList.length > 0 && (
-              <ScrollView
+            {skillsList && skillsList.length > 0 ? (
+              <ScrollView showsVerticalScrollIndicator={false}
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                style={styles.chipsRow}
-                contentContainerStyle={styles.chipsRowContent}
+                style={{ flexGrow: 0, marginHorizontal: -16 }}
+                contentContainerStyle={{ paddingHorizontal: 16 }}
               >
                 {skillsList.map((skill) => (
                   <FilterChip
@@ -103,8 +94,9 @@ export default function ExploreWorkersScreen() {
                   />
                 ))}
               </ScrollView>
-            )}
-          </>
+            ) : null}
+            {isLoading ? <CardSkeletons /> : null}
+          </View>
         }
         renderItem={({ item }) => (
           <WorkerCard
@@ -113,47 +105,15 @@ export default function ExploreWorkersScreen() {
           />
         )}
         ListEmptyComponent={
-          !isLoading ? (
-            <Text style={styles.emptyText}>
-              {isError ? t("exploreWorkers.error") : t("exploreWorkers.empty")}
-            </Text>
-          ) : null
+          isLoading ? null : isError ? (
+            <EmptyState icon={WifiOff} tone="danger" message={t("exploreWorkers.error")} actionLabel={t("jobDetails.retry")} onAction={() => refetch()} />
+          ) : (
+            <EmptyState icon={SearchX} message={t("exploreWorkers.empty")} actionLabel={t("explore.clearFilters")} onAction={() => { setQuery(""); setActiveSkills(new Set()); }} />
+          )
         }
         onRefresh={refetch}
-        refreshing={isLoading}
+        refreshing={false}
       />
-    </SafeAreaView>
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  header: {
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    backgroundColor: colors.surface,
-  },
-  headerTitle: { fontSize: 18, fontWeight: "800", color: colors.textPrimary, fontFamily: "InstrumentSerif_400Regular" },
-  listContent: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24 },
-  subtitle: { fontSize: 14, color: colors.textSecondary, marginBottom: 16 },
-  searchBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.surface,
-    borderRadius: 18,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    gap: 10,
-    borderWidth: 1,
-    borderColor: "#EEEEF0",
-  },
-  searchInput: { flex: 1, fontSize: 15, color: colors.textPrimary },
-  chipsRow: { marginTop: 16, flexGrow: 0 },
-  chipsRowContent: { paddingRight: 20 },
-  emptyText: { textAlign: "center", color: colors.textSecondary, marginTop: 40, fontSize: 14 },
-  upgradePrompt: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, paddingHorizontal: 32 },
-  upgradeTitle: { fontSize: 17, fontWeight: "800", color: colors.textPrimary, textAlign: "center" },
-  upgradeMessage: { fontSize: 14, color: colors.textSecondary, textAlign: "center" },
-  upgradeButton: { backgroundColor: colors.accent, borderRadius: 999, paddingHorizontal: 22, paddingVertical: 12, marginTop: 6 },
-  upgradeButtonText: { color: colors.surface, fontWeight: "700", fontSize: 14 },
-});

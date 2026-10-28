@@ -1,172 +1,141 @@
 import { Redirect, useRouter } from "expo-router";
+import { Search, SearchX, WifiOff } from "lucide-react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { FlatList, View } from "react-native";
+import { setLanguage } from "../../i18n/i18n";
+import { useGetMeQuery } from "../../store/api/usersApi";
+import { useSearchJobsQuery } from "../../store/api/jobsApi";
 import {
-  ActivityIndicator,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
+  ACTION_BAR_CLEARANCE,
+  AlertDialog,
+  BrandLogo,
+  Button,
+  EmptyState,
+  GlassActionBar,
+  Screen,
+  SegmentedControl,
+  Skeleton,
   Text,
-  TextInput,
-  View,
-} from "react-native";
-import { useSignInMutation } from "../../store/api/authApi";
-import { useGetMeQuery, useLazyGetMeQuery } from "../../store/api/usersApi";
+  TextField,
+} from "../components/ds";
+import { JobCard } from "../components/Jobs/JobCard";
 import { useSession } from "../lib/session";
-import { colors } from "../theme/colors";
+import { homeFor } from "../lib/home";
+import { useTokens } from "../theme/use-tokens";
 
-import { BrujulaAppIcon } from "@/components/Brujula";
-import { useDispatch } from "react-redux";
-import { setAuth } from "../../store/slices/authSlice";
-
-export default function LoginScreen() {
-  const { t } = useTranslation();
+/**
+ * First screen for signed-out users ("Browse-first"): real jobs before sign-up.
+ * Opening a job works as a guest; applying or saving prompts sign-in.
+ */
+export default function WelcomeScreen() {
+  const { t, i18n } = useTranslation();
+  const p = useTokens();
   const router = useRouter();
   const { status } = useSession();
-  const dispatch = useDispatch();
+  const [query, setQuery] = useState("");
+  const [guestOpen, setGuestOpen] = useState(false);
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-
-  const [signIn] = useSignInMutation()
-  const [triggerGetMe] = useLazyGetMeQuery();
-  // Only fires for the "already had a session on app launch" branch below —
-  // handleSignIn fetches its own fresh copy via triggerGetMe instead, since
-  // right after signing in this cached query may not have run yet.
   const { data: me } = useGetMeQuery(undefined, { skip: status !== "authenticated" });
+  const { data: jobs, isLoading, isError, refetch } = useSearchJobsQuery({ limit: 20, offset: 0, ...(query.trim() ? { q: query.trim() } : {}) });
 
-  // Already logged in on app launch — skip straight to the tabs, landing on
-  // the right home tab for the role (employer home is /my-jobs, not /jobs).
+  // Already logged in on app launch — skip to the role's home tab.
   if (status === "authenticated") {
     if (!me) return null;
-    return <Redirect href={me.role === "employer" ? "/my-jobs" : "/jobs"} />;
+    return <Redirect href={homeFor(me.role)} />;
   }
 
-  async function handleSignIn() {
-    setError(null);
-    setSubmitting(true);
-    try {
-      const response = await signIn({ email, password }).unwrap();
-
-      if (response.status === "OK") {
-        dispatch(setAuth({
-          supertokensUserId: response.user.id,
-          email: response.user.emails[0],
-        }));
-
-        const me = await triggerGetMe().unwrap();
-        router.push(me.role === "employer" ? "/my-jobs" : "/jobs");
-      } else if (response.status === "WRONG_CREDENTIALS_ERROR") {
-        setError(t("login.wrongCredentials"));
-      } else {
-        setError(t("login.genericError"));
-      }
-    } catch {
-      setError(t("login.genericError"));
-    } finally {
-      setSubmitting(false);
-    }
-  }
+  const lang = i18n.language?.startsWith("es") ? "es" : "en";
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
-        <BrujulaAppIcon style = {styles.logoBadge}/>
-        <Text style={styles.brandName}>Brújula</Text>
-        <Text style={styles.brandTagline}>Tu norte profesional.</Text>
-
-        <View style={styles.form}>
-          <TextInput
-            value={email}
-            onChangeText={setEmail}
-            placeholder={t("login.emailPlaceholder") as string}
-            placeholderTextColor={colors.textMuted}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            style={styles.input}
-          />
-          <TextInput
-            value={password}
-            onChangeText={setPassword}
-            placeholder={t("login.passwordPlaceholder") as string}
-            placeholderTextColor={colors.textMuted}
-            secureTextEntry
-            style={styles.input}
-          />
-
-          {error && <Text style={styles.error}>{error}</Text>}
-
-          <Pressable
-            style={styles.button}
-            onPress={handleSignIn}
-            disabled={submitting}
-          >
-            {submitting ? (
-              <ActivityIndicator color={colors.surface} />
-            ) : (
-              <Text style={styles.buttonText}>{t("login.signIn")}</Text>
-            )}
-          </Pressable>
-
-          <Pressable style={styles.linkRow} onPress={() => router.push("/forgot-password")}>
-            <Text style={styles.linkAccent}>{t("login.forgotPasswordLink")}</Text>
-          </Pressable>
-
-          <Pressable style={styles.linkRow} onPress={() => router.push("/sign-up")}>
-            <Text style={styles.linkText}>
-              {t("login.noAccount")} <Text style={styles.linkAccent}>{t("login.signUpLink")}</Text>
-            </Text>
-          </Pressable>
-        </View>
+    <Screen>
+      <View style={{ height: 52, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20 }}>
+        <BrandLogo size={22} />
+        <SegmentedControl<"es" | "en">
+          size="sm"
+          value={lang}
+          onChange={(l) => void setLanguage(l)}
+          options={[
+            { value: "es", label: "ES" },
+            { value: "en", label: "EN" },
+          ]}
+        />
       </View>
-    </SafeAreaView>
+
+      <FlatList showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
+        data={jobs ?? []}
+        keyExtractor={(j) => j.id}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: ACTION_BAR_CLEARANCE + 40 }}
+        ListHeaderComponent={
+          <View style={{ gap: 16, paddingTop: 20, paddingBottom: 12 }}>
+            <View style={{ gap: 6, paddingHorizontal: 4 }}>
+              <Text accessibilityRole="header" weight="bold" style={{ fontSize: 34, lineHeight: 38, letterSpacing: -0.03 * 34 }}>
+                {t("explore.headline")} <Text weight="bold" tone="accent" style={{ fontSize: 34, lineHeight: 38, letterSpacing: -0.03 * 34 }}>{t("explore.headlineAccent")}</Text>
+              </Text>
+              <Text variant="callout" tone="secondary">
+                {t("explore.opportunitiesNear", { count: jobs?.length ?? 0 })}
+              </Text>
+            </View>
+            <TextField value={query} onChangeText={setQuery} icon={Search} placeholder={t("explore.searchPlaceholder")} returnKeyType="search" />
+            <Text variant="caps" tone="tertiary" style={{ paddingHorizontal: 4 }}>
+              {t("explore.latest")}
+            </Text>
+            {isLoading ? (
+              <View style={{ gap: 14 }}>
+                {[0, 1, 2].map((i) => (
+                  <Skeleton key={i} height={110} radius={20} />
+                ))}
+              </View>
+            ) : null}
+          </View>
+        }
+        renderItem={({ item }) => (
+          <JobCard
+            job={item}
+            onPress={() => router.push({ pathname: "/job/[id]", params: { id: item.id } })}
+            isSaved={false}
+            onToggleSave={() => setGuestOpen(true)}
+          />
+        )}
+        ListEmptyComponent={
+          isLoading ? null : isError ? (
+            <EmptyState icon={WifiOff} tone="danger" message={t("explore.error")} actionLabel={t("jobDetails.retry")} onAction={() => refetch()} />
+          ) : (
+            <EmptyState icon={SearchX} message={t("explore.empty")} actionLabel={t("explore.clearFilters")} onAction={() => setQuery("")} />
+          )
+        }
+      />
+
+      <View pointerEvents="box-none" style={{ position: "absolute", left: 0, right: 0, bottom: 0, top: 0 }}>
+        <GlassActionBar inset={16}>
+          <View style={{ gap: 12, paddingTop: 6, paddingHorizontal: 4 }}>
+            <Text weight="medium" style={{ fontSize: 15, lineHeight: 21, textAlign: "center" }}>
+              {t("welcome.barText")}
+            </Text>
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <Button
+                variant="tinted"
+                title={t("login.signIn")}
+                onPress={() => router.push("/login")}
+                style={{ flex: 1, alignSelf: "auto" }}
+              />
+              <Button title={t("signUp.title")} onPress={() => router.push("/sign-up")} style={{ flex: 1, alignSelf: "auto" }} />
+            </View>
+          </View>
+        </GlassActionBar>
+      </View>
+
+      <AlertDialog
+        open={guestOpen}
+        title={t("welcome.guestTitle")}
+        message={t("welcome.guestMessage")}
+        onClose={() => setGuestOpen(false)}
+        actions={[
+          { label: t("jobDetails.cancel"), style: "cancel" },
+          { label: t("login.signIn"), onPress: () => router.push("/login") },
+        ]}
+      />
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  container: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24 },
-  logoBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: colors.textPrimary,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
-  },
-  logoLetter: { color: colors.accent, fontWeight: "800", fontSize: 26, fontFamily: "InstrumentSerif_400Regular" },
-  brandName: { color: colors.textPrimary, fontSize: 40, fontFamily: "InstrumentSerif_400Regular", marginTop: 4 },
-  brandTagline: {
-    color: colors.textSecondary,
-    fontSize: 16,
-    fontFamily: "InstrumentSerif_400Regular_Italic",
-    marginTop: 4,
-    marginBottom: 36,
-  },
-  form: { width: "100%", maxWidth: 360, gap: 14 },
-  input: {
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 15,
-    color: colors.textPrimary,
-    borderWidth: 1,
-    borderColor: "#EEEEF0",
-  },
-  button: {
-    backgroundColor: colors.accent,
-    borderRadius: 14,
-    paddingVertical: 15,
-    alignItems: "center",
-    marginTop: 6,
-  },
-  buttonText: { color: colors.surface, fontWeight: "700", fontSize: 15 },
-  error: { color: "#D64545", fontSize: 13, textAlign: "center" },
-  linkRow: { alignItems: "center", marginTop: 4 },
-  linkText: { color: colors.textSecondary, fontSize: 13 },
-  linkAccent: { color: colors.accent, fontWeight: "700", fontSize: 13 },
-});

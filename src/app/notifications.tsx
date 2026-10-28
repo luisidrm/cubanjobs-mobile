@@ -1,17 +1,19 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { Bell, BellOff, WifiOff } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, FlatList, Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, View } from "react-native";
 import {
   useGetNotificationsQuery,
   useMarkAllNotificationsReadMutation,
   useMarkNotificationReadMutation,
 } from "../../store/api/notificationsApi";
-import { colors } from "../theme/colors";
+import { Button, Card, CardSkeletons, EmptyState, Icon, NavBar, PressableScale, Screen, Text } from "../components/ds";
+import { useTokens } from "../theme/use-tokens";
 import type { Notification } from "../types/notification";
 
 function NotificationRow({ notification, onPress }: { notification: Notification; onPress: () => void }) {
   const { i18n } = useTranslation();
+  const p = useTokens();
   const date = new Date(notification.createdAt).toLocaleDateString(i18n.language, {
     month: "short",
     day: "2-digit",
@@ -20,14 +22,35 @@ function NotificationRow({ notification, onPress }: { notification: Notification
   });
 
   return (
-    <Pressable
-      style={[styles.row, !notification.read && styles.rowUnread]}
-      onPress={onPress}
-    >
-      <Text style={styles.rowTitle} numberOfLines={2}>{notification.title}</Text>
-      <Text style={styles.rowBody} numberOfLines={3}>{notification.body}</Text>
-      <Text style={styles.rowDate}>{date}</Text>
-    </Pressable>
+    <PressableScale accessibilityRole="button" onPress={onPress} style={{ marginBottom: 10 }}>
+      <Card variant={notification.read ? "solid" : "grouped"} padding={14} radius={18} style={notification.read ? undefined : { backgroundColor: p.accentSoft }}>
+        <View style={{ flexDirection: "row", gap: 12 }}>
+          <View
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              backgroundColor: notification.read ? p.fill1 : p.accent,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Icon icon={Bell} size={18} color={notification.read ? p.text2 : p.onAccent} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text variant="headline" numberOfLines={2}>
+              {notification.title}
+            </Text>
+            <Text variant="subhead" tone="secondary" numberOfLines={3}>
+              {notification.body}
+            </Text>
+            <Text variant="caption" tone="tertiary" style={{ marginTop: 6 }}>
+              {date}
+            </Text>
+          </View>
+        </View>
+      </Card>
+    </PressableScale>
   );
 }
 
@@ -40,76 +63,38 @@ export default function NotificationsScreen() {
 
   function handlePressNotification(notification: Notification) {
     if (!notification.read) markRead(notification.id);
+    if (/^(plan_|payment_)/.test(notification.type)) router.push("/plans");
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="chevron-back" size={26} color={colors.textPrimary} />
-        </Pressable>
-        <Text style={styles.headerTitle}>{t("notifications.title")}</Text>
-        <Pressable onPress={() => markAllRead()} disabled={markingAll} hitSlop={12}>
-          <Text style={styles.markAllText}>{t("notifications.markAllRead")}</Text>
-        </Pressable>
-      </View>
+    <Screen safeTop={false}>
+      <NavBar
+        back
+        title={t("notifications.title")}
+        trailing={<Button size="sm" variant="plain" title={t("notifications.markAllRead")} loading={markingAll} onPress={() => markAllRead()} />}
+      />
 
-      {isLoading && (
-        <View style={styles.centered}>
-          <ActivityIndicator color={colors.accent} />
+      {isLoading ? (
+        <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
+          <CardSkeletons height={84} />
         </View>
-      )}
+      ) : null}
 
-      {isError && !isLoading && (
-        <View style={styles.centered}>
-          <Text style={styles.errorText}>{t("notifications.error")}</Text>
-          <Pressable style={styles.retryButton} onPress={() => refetch()}>
-            <Text style={styles.retryText}>{t("jobDetails.retry")}</Text>
-          </Pressable>
-        </View>
-      )}
+      {isError && !isLoading ? (
+        <EmptyState icon={WifiOff} tone="danger" message={t("notifications.error")} actionLabel={t("jobDetails.retry")} onAction={() => refetch()} />
+      ) : null}
 
-      {!isLoading && !isError && (
-        <FlatList
+      {!isLoading && !isError ? (
+        <FlatList showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
           data={notifications ?? []}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <NotificationRow notification={item} onPress={() => handlePressNotification(item)} />
-          )}
-          ListEmptyComponent={<Text style={styles.emptyText}>{t("notifications.empty")}</Text>}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32 }}
+          renderItem={({ item }) => <NotificationRow notification={item} onPress={() => handlePressNotification(item)} />}
+          ListEmptyComponent={<EmptyState icon={BellOff} message={t("notifications.empty")} />}
           onRefresh={refetch}
           refreshing={isLoading}
         />
-      )}
-    </SafeAreaView>
+      ) : null}
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  header: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 20, paddingVertical: 14, backgroundColor: colors.surface,
-  },
-  headerTitle: { fontSize: 17, fontWeight: "800", color: colors.textPrimary, fontFamily: "InstrumentSerif_400Regular" },
-  markAllText: { fontSize: 13, fontWeight: "700", color: colors.accent },
-  centered: { flex: 1, alignItems: "center", justifyContent: "center", gap: 14 },
-  errorText: { color: colors.textSecondary, fontSize: 14 },
-  retryButton: { backgroundColor: colors.accent, borderRadius: 999, paddingHorizontal: 20, paddingVertical: 10 },
-  retryText: { color: colors.surface, fontWeight: "700", fontSize: 13 },
-  listContent: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24 },
-  emptyText: { textAlign: "center", color: colors.textSecondary, marginTop: 40, fontSize: 14 },
-  row: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "#EEEEF0",
-  },
-  rowUnread: { backgroundColor: colors.accentSoft, borderColor: colors.accentSoft },
-  rowTitle: { fontSize: 15, fontWeight: "700", color: colors.textPrimary },
-  rowBody: { fontSize: 13, color: colors.textSecondary, marginTop: 4 },
-  rowDate: { fontSize: 11, color: colors.textMuted, marginTop: 8 },
-});

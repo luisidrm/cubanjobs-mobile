@@ -1,17 +1,10 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Link2Off, Lock, LockKeyhole, ShieldCheck } from "lucide-react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  ActivityIndicator,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
 import { useSubmitNewPasswordMutation } from "../../store/api/authApi";
-import { colors } from "../theme/colors";
+import { AuthScreen } from "../components/auth/AuthScreen";
+import { Button, DangerBanner, StatusScreen, TextField } from "../components/ds";
 
 export default function ResetPasswordScreen() {
   const { t } = useTranslation();
@@ -20,6 +13,7 @@ export default function ResetPasswordScreen() {
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [mismatch, setMismatch] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
@@ -29,13 +23,14 @@ export default function ResetPasswordScreen() {
 
   async function handleSubmit() {
     setError(null);
+    setMismatch(false);
 
     if (!token) {
       setInvalidToken(true);
       return;
     }
     if (password !== confirmPassword) {
-      setError(t("resetPassword.mismatchError"));
+      setMismatch(true);
       return;
     }
 
@@ -58,95 +53,58 @@ export default function ResetPasswordScreen() {
 
   if (invalidToken) {
     return (
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.container}>
-          <Text style={styles.title}>{t("resetPassword.invalidToken")}</Text>
-          <Pressable style={styles.button} onPress={() => router.replace("/forgot-password")}>
-            <Text style={styles.buttonText}>{t("resetPassword.requestNewLink")}</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
+      <StatusScreen
+        icon={Link2Off}
+        tone="danger"
+        title={t("resetPassword.invalidToken")}
+        message={t("resetPassword.subtitle")}
+        primary={{ title: t("resetPassword.requestNewLink"), onPress: () => router.replace("/forgot-password") }}
+        secondary={{ title: t("forgotPassword.backToSignIn"), onPress: () => router.replace("/login") }}
+      />
     );
   }
 
   if (done) {
     return (
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.container}>
-          <Text style={styles.title}>{t("resetPassword.successTitle")}</Text>
-          <Text style={styles.subtitle}>{t("resetPassword.successMessage")}</Text>
-          <Pressable style={styles.button} onPress={() => router.replace("/")}>
-            <Text style={styles.buttonText}>{t("resetPassword.continueToSignIn")}</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
+      <StatusScreen
+        icon={ShieldCheck}
+        tone="success"
+        title={t("resetPassword.successTitle")}
+        message={t("resetPassword.successMessage")}
+        primary={{ title: t("resetPassword.continueToSignIn"), onPress: () => router.replace("/login") }}
+      />
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
-        <Text style={styles.title}>{t("resetPassword.title")}</Text>
-        <Text style={styles.subtitle}>{t("resetPassword.subtitle")}</Text>
-
-        <View style={styles.form}>
-          <TextInput
-            value={password}
-            onChangeText={setPassword}
-            placeholder={t("resetPassword.newPasswordPlaceholder") as string}
-            placeholderTextColor={colors.textMuted}
-            secureTextEntry
-            style={styles.input}
-          />
-          <TextInput
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            placeholder={t("resetPassword.confirmPasswordPlaceholder") as string}
-            placeholderTextColor={colors.textMuted}
-            secureTextEntry
-            style={styles.input}
-          />
-
-          {error && <Text style={styles.error}>{error}</Text>}
-
-          <Pressable style={styles.button} onPress={handleSubmit} disabled={submitting}>
-            {submitting ? (
-              <ActivityIndicator color={colors.surface} />
-            ) : (
-              <Text style={styles.buttonText}>{t("resetPassword.submit")}</Text>
-            )}
-          </Pressable>
-        </View>
-      </View>
-    </SafeAreaView>
+    <AuthScreen
+      back={() => (router.canGoBack() ? router.back() : router.replace("/login"))}
+      backLabel={t("common.back", { defaultValue: "Back" })}
+      icon={LockKeyhole}
+      title={t("resetPassword.title")}
+      subtitle={t("resetPassword.subtitle")}
+    >
+      {error ? <DangerBanner message={error} /> : null}
+      <TextField
+        value={password}
+        onChangeText={setPassword}
+        icon={Lock}
+        placeholder={t("resetPassword.newPasswordPlaceholder")}
+        secureTextEntry
+        autoComplete="new-password"
+        textContentType="newPassword"
+      />
+      <TextField
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        icon={Lock}
+        placeholder={t("resetPassword.confirmPasswordPlaceholder")}
+        secureTextEntry
+        autoComplete="new-password"
+        textContentType="newPassword"
+        error={mismatch ? t("resetPassword.mismatchError") : undefined}
+      />
+      <Button block size="lg" title={t("resetPassword.submit")} loading={submitting} onPress={handleSubmit} />
+    </AuthScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  container: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24 },
-  title: { color: colors.textPrimary, fontSize: 22, fontWeight: "800", marginBottom: 12, textAlign: "center" },
-  subtitle: { color: colors.textSecondary, fontSize: 14, textAlign: "center", marginBottom: 20, lineHeight: 20 },
-  form: { width: "100%", maxWidth: 360, gap: 14 },
-  input: {
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 15,
-    color: colors.textPrimary,
-    borderWidth: 1,
-    borderColor: "#EEEEF0",
-  },
-  button: {
-    backgroundColor: colors.accent,
-    borderRadius: 14,
-    paddingVertical: 15,
-    alignItems: "center",
-    marginTop: 6,
-    width: "100%",
-    maxWidth: 360,
-  },
-  buttonText: { color: colors.surface, fontWeight: "700", fontSize: 15 },
-  error: { color: "#D64545", fontSize: 13, textAlign: "center" },
-});

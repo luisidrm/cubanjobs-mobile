@@ -1,25 +1,16 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useGetMeQuery, useUpdateProfileMutation } from "../../store/api/usersApi";
+import { Button, NavBar, Screen, TextField, ACTION_BAR_CLEARANCE, GlassActionBar } from "../components/ds";
 import { showErrorToast } from "../lib/toast";
-import { colors } from "../theme/colors";
+import { useTokens } from "../theme/use-tokens";
+import { goBack } from "../lib/navigation";
 
 export default function EditProfileScreen() {
   const { t } = useTranslation();
+  const p = useTokens();
   const router = useRouter();
 
   const { data: user, isLoading } = useGetMeQuery();
@@ -54,108 +45,63 @@ export default function EditProfileScreen() {
         phone: phone.trim() || undefined,
         linkedinUrl: linkedinUrl.trim() || undefined,
       }).unwrap();
-      router.back();
+      goBack(router);
     } catch {
       showErrorToast(t("profile.editProfile.saveError"));
     }
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="chevron-back" size={26} color={colors.textPrimary} />
-        </Pressable>
-        <Text style={styles.headerTitle}>{t("profile.editProfile.title")}</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+    <Screen safeTop={false}>
+      <NavBar back title={t("profile.editProfile.title")} />
 
       {isLoading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator color={colors.accent} />
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+          <ActivityIndicator color={p.accent} />
         </View>
       ) : (
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-          <ScrollView contentContainerStyle={styles.body}>
-            <Text style={styles.label}>{t("profile.editProfile.firstName")}</Text>
-            <TextInput style={styles.input} value={firstName} onChangeText={setFirstName} placeholderTextColor={colors.textMuted} />
-
-            <Text style={styles.label}>{t("profile.editProfile.lastName")}</Text>
-            <TextInput style={styles.input} value={lastName} onChangeText={setLastName} placeholderTextColor={colors.textMuted} />
-
-            <Text style={styles.label}>{t("profile.editProfile.bio")}</Text>
-            <TextInput
-              style={[styles.input, styles.multiline]}
+          <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: ACTION_BAR_CLEARANCE, gap: 20 }}>
+            <View style={{ flexDirection: "row", gap: 12 }}>
+              <TextField containerStyle={{ flex: 1 }} label={t("profile.editProfile.firstName")} value={firstName} onChangeText={setFirstName} autoComplete="given-name" />
+              <TextField containerStyle={{ flex: 1 }} label={t("profile.editProfile.lastName")} value={lastName} onChangeText={setLastName} autoComplete="family-name" />
+            </View>
+            <TextField
+              label={t("profile.editProfile.bio")}
               value={bio}
               onChangeText={setBio}
               placeholder={t("profile.editProfile.bioPlaceholder")}
-              placeholderTextColor={colors.textMuted}
               multiline
+              rows={4}
             />
-
-            <Text style={styles.label}>{t("profile.editProfile.location")}</Text>
-            <TextInput
-              style={styles.input}
+            <TextField
+              label={t("profile.editProfile.location")}
               value={location}
               onChangeText={setLocation}
               placeholder={t("profile.editProfile.locationPlaceholder")}
-              placeholderTextColor={colors.textMuted}
             />
-
-            <Text style={styles.label}>{t("profile.editProfile.phone")}</Text>
-            <TextInput
-              style={styles.input}
+            <TextField
+              label={t("profile.editProfile.phone")}
               value={phone}
               onChangeText={setPhone}
               placeholder={t("profile.editProfile.phonePlaceholder")}
-              placeholderTextColor={colors.textMuted}
               keyboardType="phone-pad"
+              autoComplete="tel"
             />
-
-            <Text style={styles.label}>{t("profile.editProfile.linkedin")}</Text>
-            <TextInput
-              style={styles.input}
+            <TextField
+              label={t("profile.editProfile.linkedin")}
               value={linkedinUrl}
               onChangeText={setLinkedinUrl}
               placeholder="https://linkedin.com/in/..."
-              placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
               keyboardType="url"
             />
-
-            <Pressable style={styles.saveButton} onPress={handleSave} disabled={saving}>
-              {saving ? (
-                <ActivityIndicator color={colors.surface} />
-              ) : (
-                <Text style={styles.saveButtonText}>{t("profile.editProfile.save")}</Text>
-              )}
-            </Pressable>
           </ScrollView>
         </KeyboardAvoidingView>
       )}
-    </SafeAreaView>
+      <GlassActionBar>
+        <Button block size="lg" title={t("profile.editProfile.save")} loading={saving} onPress={handleSave} />
+      </GlassActionBar>
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  header: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 20, paddingVertical: 14, backgroundColor: colors.surface,
-  },
-  headerTitle: { fontSize: 17, fontWeight: "800", color: colors.textPrimary, fontFamily: "InstrumentSerif_400Regular" },
-  headerSpacer: { width: 26 },
-  centered: { flex: 1, alignItems: "center", justifyContent: "center" },
-  body: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 },
-  label: { fontSize: 13, fontWeight: "700", color: colors.textSecondary, marginTop: 16, marginBottom: 8 },
-  input: {
-    backgroundColor: colors.surface, borderRadius: 14, borderWidth: 1, borderColor: "#EEEEF0",
-    paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: colors.textPrimary,
-  },
-  multiline: { minHeight: 90, textAlignVertical: "top" },
-  saveButton: {
-    backgroundColor: colors.accent, borderRadius: 999, paddingVertical: 16,
-    alignItems: "center", marginTop: 28,
-  },
-  saveButtonText: { color: colors.surface, fontWeight: "800", fontSize: 15 },
-});

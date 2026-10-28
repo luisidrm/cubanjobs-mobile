@@ -1,42 +1,22 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Bell } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { useGetUnreadCountQuery } from "../../../store/api/notificationsApi";
-import { colors } from "../../theme/colors";
+import { IconButton } from "../ds";
 
 export function NotificationBell() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { data: count } = useGetUnreadCountQuery(undefined, { pollingInterval: 30000 });
   const unread = count ?? 0;
 
   return (
-    <Pressable onPress={() => router.push("/notifications")} hitSlop={8}>
-      <Ionicons name="notifications-outline" size={26} color={colors.textPrimary} />
-      {unread > 0 && (
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{unread > 9 ? "9+" : unread}</Text>
-        </View>
-      )}
-    </Pressable>
+    <IconButton
+      icon={Bell}
+      label={t("notifications.title")}
+      variant="glass"
+      badge={unread > 0 ? (unread > 9 ? "9+" : unread) : undefined}
+      onPress={() => router.push("/notifications")}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  badge: {
-    position: "absolute",
-    top: -4,
-    right: -6,
-    minWidth: 16,
-    height: 16,
-    borderRadius: 8,
-    paddingHorizontal: 3,
-    backgroundColor: colors.error,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  badgeText: {
-    color: colors.surface,
-    fontSize: 10,
-    fontWeight: "800",
-  },
-});

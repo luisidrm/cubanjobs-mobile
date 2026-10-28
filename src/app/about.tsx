@@ -1,62 +1,43 @@
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
-import { colors } from "../theme/colors";
+import { ScrollView, View } from "react-native";
+import { BrandMark, Card, NavBar, Screen, Text } from "../components/ds";
 
 const VALUE_KEYS = ["clearDirection", "verifiedTrust", "builtForCuba", "openDoors"] as const;
 
 export default function AboutScreen() {
   const { t } = useTranslation();
-  const router = useRouter();
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="chevron-back" size={26} color={colors.textPrimary} />
-        </Pressable>
-        <Text style={styles.headerTitle}>{t("about.title")}</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+    <Screen safeTop={false}>
+      <NavBar back title={t("about.title")} />
 
-      <ScrollView contentContainerStyle={styles.body}>
-        <Text style={styles.wordmark}>Brújula</Text>
-        <Text style={styles.tagline}>{t("about.tagline")}</Text>
-        <Text style={styles.mission}>{t("about.mission")}</Text>
-
-        {VALUE_KEYS.map((key, i) => (
-          <View key={key} style={styles.valueCard}>
-            <Text style={styles.valueNum}>{String(i + 1).padStart(2, "0")}</Text>
-            <Text style={styles.valueTitle}>{t(`about.values.${key}.title`)}</Text>
-            <Text style={styles.valueBody}>{t(`about.values.${key}.body`)}</Text>
+      <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 24, paddingBottom: 40, gap: 24 }}>
+        <View style={{ gap: 6 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <BrandMark size={48} />
+            <Text accessibilityRole="header" weight="bold" style={{ fontSize: 40, lineHeight: 44, letterSpacing: -0.04 * 40 }}>
+              Brújula
+            </Text>
           </View>
-        ))}
+          <Text variant="title3" tone="secondary" weight="medium">
+            {t("about.tagline")}
+          </Text>
+        </View>
+        <Text variant="body" tone="secondary">
+          {t("about.mission")}
+        </Text>
+
+        <View style={{ gap: 12 }}>
+          {VALUE_KEYS.map((key) => (
+            <Card key={key} style={{ gap: 6 }}>
+              <Text variant="headline">{t(`about.values.${key}.title`)}</Text>
+              <Text variant="subhead" tone="secondary">
+                {t(`about.values.${key}.body`)}
+              </Text>
+            </Card>
+          ))}
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  header: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 20, paddingVertical: 14, backgroundColor: colors.surface,
-  },
-  headerTitle: { fontSize: 17, fontWeight: "800", color: colors.textPrimary, fontFamily: "InstrumentSerif_400Regular" },
-  headerSpacer: { width: 26 },
-  body: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 40 },
-  wordmark: { fontSize: 34, color: colors.accent, fontFamily: "InstrumentSerif_400Regular" },
-  tagline: {
-    fontSize: 17, color: colors.textSecondary, marginTop: 4, marginBottom: 18,
-    fontFamily: "InstrumentSerif_400Regular_Italic",
-  },
-  mission: { fontSize: 14.5, color: colors.chipText, lineHeight: 21, marginBottom: 28 },
-  valueCard: {
-    backgroundColor: colors.surface, borderRadius: 16, padding: 18, marginBottom: 12,
-    borderWidth: 1, borderColor: colors.chipBorder,
-  },
-  valueNum: { fontSize: 12, fontFamily: "IBMPlexMono_500Medium", color: colors.accent, marginBottom: 8 },
-  valueTitle: { fontSize: 17, fontFamily: "InstrumentSerif_400Regular", color: colors.textPrimary, marginBottom: 6 },
-  valueBody: { fontSize: 13.5, color: colors.textSecondary, lineHeight: 19 },
-});

@@ -83,6 +83,18 @@ export const jobsApi = createApi({
       invalidatesTags: (result, error, id) => [{ type: "Job", id }, { type: "Job", id: "MY_LIST" }],
     }),
 
+    uploadJobImage: builder.mutation<EmployerJob, { jobId: string; formData: FormData }>({
+      query: ({ jobId, formData }) => ({ url: `/api/v1/uploads/job-image/${jobId}`, method: "POST", body: formData }),
+      transformResponse: (response: ApiResponse<EmployerJob>) => response.data,
+      invalidatesTags: (result, error, { jobId }) => [{ type: "Job", id: jobId }, { type: "Job", id: "MY_LIST" }, { type: "Job", id: "LIST" }],
+    }),
+
+    deleteJobImage: builder.mutation<EmployerJob, string>({
+      query: (jobId) => ({ url: `/api/v1/uploads/job-image/${jobId}`, method: "DELETE" }),
+      transformResponse: (response: ApiResponse<EmployerJob>) => response.data,
+      invalidatesTags: (result, error, jobId) => [{ type: "Job", id: jobId }, { type: "Job", id: "MY_LIST" }, { type: "Job", id: "LIST" }],
+    }),
+
     getTags: builder.query<Tag[], void>({
       query: () => "/api/v1/tags",
       transformResponse: (response: ApiResponse<Tag[]>) => response.data,
@@ -97,5 +109,7 @@ export const {
   useCreateJobMutation,
   useUpdateJobMutation,
   useDeleteJobMutation,
+  useUploadJobImageMutation,
+  useDeleteJobImageMutation,
   useGetTagsQuery,
 } = jobsApi;

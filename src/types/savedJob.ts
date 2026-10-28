@@ -8,6 +8,7 @@ export interface SavedJobWithDetails {
     title: string;
     location: string | null;
     isRemote: boolean;
+    coverImageUrl: string | null;
     salaryMin: number | null;
     salaryMax: number | null;
     currency: Currency | null;

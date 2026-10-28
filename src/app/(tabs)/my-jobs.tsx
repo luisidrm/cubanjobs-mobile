@@ -1,78 +1,104 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { Building2, Calendar, ChevronRight, Eye, Pencil, Plus, WifiOff } from "lucide-react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Alert, FlatList, Platform, Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
-import { useGetEmailVerificationStatusQuery, useResendVerificationEmailMutation } from "../../../store/api/authApi";
+import { FlatList, View } from "react-native";
 import { useGetMyCompaniesQuery } from "../../../store/api/companiesApi";
 import { useGetJobsByCompanyQuery } from "../../../store/api/jobsApi";
+import {
+  AlertDialog,
+  Badge,
+  Button,
+  Card,
+  CardSkeletons,
+  EmptyState,
+  Icon,
+  IconButton,
+  NavBar,
+  PressableScale,
+  Screen,
+  Text,
+  VerifyBanner,
+  type BadgeTone,
+} from "../../components/ds";
+import { PlanBanner } from "../../components/plans/PlanBanner";
+import { JoinCompany } from "../../components/team/JoinCompany";
 import { NotificationBell } from "../../components/notifications/NotificationBell";
 import { getPlanJobLimit } from "../../lib/plans";
-import { colors } from "../../theme/colors";
+import { TAB_BAR_CLEARANCE } from "../../theme/tokens";
+import { useTokens } from "../../theme/use-tokens";
 import type { EmployerJob, JobStatus } from "../../types/job";
 
-const STATUS_STYLE: Record<JobStatus, { bg: string; text: string }> = {
-  draft: { bg: "#EEEEF0", text: "#6B6B70" },
-  active: { bg: "#E1F5E6", text: "#1E8A3C" },
-  closed: { bg: "#FBE3E3", text: "#C43E3E" },
-  expired: { bg: "#FCEBCB", text: "#B8760B" },
+// draft = neutral, active = success, closed = danger, expired = warning
+const STATUS_TONE: Record<JobStatus, BadgeTone> = {
+  draft: "neutral",
+  active: "success",
+  closed: "danger",
+  expired: "warning",
 };
 
-function JobStatusPill({ status }: { status: JobStatus }) {
-  const { t } = useTranslation();
-  const style = STATUS_STYLE[status];
-  return (
-    <View style={[styles.statusPill, { backgroundColor: style.bg }]}>
-      <Text style={[styles.statusText, { color: style.text }]}>{t(`jobStatus.${status}`)}</Text>
-    </View>
-  );
-}
-
+/** Job header (tile, title, views) + status badge; hairline; 48pt footer with date and Edit. */
 function MyJobRow({ job, onPress, onEdit }: { job: EmployerJob; onPress: () => void; onEdit: () => void }) {
+  const { t, i18n } = useTranslation();
+  const p = useTokens();
+  const created = new Date(job.createdAt).toLocaleDateString(i18n.language, { month: "short", day: "numeric" });
   return (
-    <Pressable style={styles.card} onPress={onPress}>
-      <View style={styles.cardRow}>
-        <View style={styles.cardLeft}>
-          <Text style={styles.cardTitle} numberOfLines={1}>{job.title}</Text>
-          <Text style={styles.cardMeta}>{job.viewCount} views</Text>
+    <Card onPress={onPress} accessibilityLabel={job.title} padding={0} style={{ marginBottom: 14 }}>
+      <View style={{ padding: 16, flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: p.accentSoft, alignItems: "center", justifyContent: "center" }}>
+          <Text weight="bold" tone="accent" style={{ fontSize: 18, lineHeight: 22 }}>
+            {job.title.charAt(0).toUpperCase()}
+          </Text>
         </View>
-        <JobStatusPill status={job.status} />
+        <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+          <Text weight="semibold" numberOfLines={1} style={{ fontSize: 16, lineHeight: 21 }}>
+            {job.title}
+          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+            <Icon icon={Eye} size={14} color={p.text3} />
+            <Text variant="footnote" tone="tertiary" tabular>
+              {job.viewCount}
+            </Text>
+          </View>
+        </View>
+        <Badge tone={STATUS_TONE[job.status]} dot>
+          {t(`jobStatus.${job.status}`)}
+        </Badge>
+        <Icon icon={ChevronRight} size={18} color={p.text3} />
       </View>
-      <View style={styles.cardFooter}>
-        <Pressable style={styles.editButton} onPress={onEdit} hitSlop={8}>
-          <Ionicons name="pencil-outline" size={14} color={colors.textPrimary} />
-          <Text style={styles.editText}>Edit</Text>
-        </Pressable>
-        <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+      <View style={{ height: 1, backgroundColor: p.separator }} />
+      <View style={{ height: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingLeft: 16, paddingRight: 8 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Icon icon={Calendar} size={14} color={p.text3} />
+          <Text variant="footnote" tone="tertiary">
+            {created}
+          </Text>
+        </View>
+        <PressableScale
+          accessibilityRole="button"
+          accessibilityLabel="Edit"
+          onPress={onEdit}
+          style={{ minHeight: 44, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 6 }}
+        >
+          <Icon icon={Pencil} size={14} color={p.accentText} />
+          <Text variant="subhead" weight="semibold" tone="accent">
+            Edit
+          </Text>
+        </PressableScale>
       </View>
-    </Pressable>
+    </Card>
   );
 }
 
 export default function MyJobsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const [limitOpen, setLimitOpen] = useState(false);
 
   const { data: companies, isLoading: companiesLoading } = useGetMyCompaniesQuery();
   const company = companies?.[0];
 
-  const {
-    data: jobs,
-    isLoading: jobsLoading,
-  } = useGetJobsByCompanyQuery(company?.id ?? "", { skip: !company });
-
-  const { data: verification } = useGetEmailVerificationStatusQuery();
-  const [resendVerificationEmail, { isLoading: resending }] = useResendVerificationEmailMutation();
-  const [resent, setResent] = useState(false);
-
-  async function handleResend() {
-    try {
-      await resendVerificationEmail().unwrap();
-      setResent(true);
-    } catch {
-      // Best-effort — user can just tap again.
-    }
-  }
+  const { data: jobs, isLoading: jobsLoading, isError, refetch } = useGetJobsByCompanyQuery(company?.id ?? "", { skip: !company });
 
   // Proactive UX nicety only — the real enforcement is the backend 403 from
   // createJob/updateJob, already surfaced via job-form.tsx's existing error toast.
@@ -81,16 +107,7 @@ export default function MyJobsScreen() {
     const activeCount = jobs?.filter((j) => j.status === "active").length ?? 0;
 
     if (limit !== null && activeCount >= limit) {
-      if (Platform.OS === "web") {
-        if (window.confirm(t("myJobs.limitReachedMessage") as string)) {
-          router.push("/billing");
-        }
-        return;
-      }
-      Alert.alert(t("myJobs.limitReachedTitle"), t("myJobs.limitReachedMessage"), [
-        { text: t("profile.cancel"), style: "cancel" },
-        { text: t("myJobs.upgrade"), onPress: () => router.push("/billing") },
-      ]);
+      setLimitOpen(true);
       return;
     }
 
@@ -98,64 +115,53 @@ export default function MyJobsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
-        <View style={styles.brand}>
-          <View style={styles.logoBadge}>
-            <Text style={styles.logoLetter}>B</Text>
+    <Screen safeTop={false}>
+      <NavBar
+        large
+        title={t("tabs.myJobs")}
+        trailing={
+          <>
+            {company ? <IconButton icon={Plus} label={t("myJobs.postJob")} variant="primary" onPress={handlePostJob} /> : null}
+            <NotificationBell />
+          </>
+        }
+      />
+
+      {companiesLoading ? (
+        <View style={{ paddingHorizontal: 16, paddingTop: 4 }}>
+          <CardSkeletons />
+        </View>
+      ) : null}
+
+      {!companiesLoading && !company ? (
+        <View style={{ flex: 1 }}>
+          <View style={{ paddingHorizontal: 16 }}>
+            <VerifyBanner />
           </View>
-          <Text style={styles.headerTitle}>{t("tabs.myJobs")}</Text>
-        </View>
-        <View style={styles.headerActions}>
-          {company && (
-            <Pressable onPress={handlePostJob} hitSlop={8}>
-              <Ionicons name="add-circle-outline" size={26} color={colors.textPrimary} />
-            </Pressable>
-          )}
-          <NotificationBell />
-          <Pressable onPress={() => router.push("/(tabs)/profile")}>
-            <Ionicons name="person-circle-outline" size={30} color={colors.textPrimary} />
-          </Pressable>
-        </View>
-      </View>
-
-      {verification?.isVerified === false && (
-        <View style={styles.verifyBanner}>
-          <Ionicons name="mail-unread-outline" size={20} color={colors.accent} />
-          <View style={styles.verifyBannerText}>
-            <Text style={styles.verifyBannerTitle}>{t("verifyBanner.title")}</Text>
-            <Text style={styles.verifyBannerSubtitle}>{t("verifyBanner.subtitle")}</Text>
+          <EmptyState
+            icon={Building2}
+            message={`${t("myJobs.noCompanyTitle")}. ${t("myJobs.noCompanySubtitle")}`}
+            actionLabel={t("myJobs.createCompany")}
+            onAction={() => router.push("/company-profile")}
+          />
+          <View style={{ paddingHorizontal: 16, paddingBottom: TAB_BAR_CLEARANCE }}>
+            <JoinCompany />
           </View>
-          <Pressable onPress={handleResend} disabled={resending || resent}>
-            <Text style={styles.verifyBannerAction}>
-              {resent ? t("verifyBanner.resent") : t("verifyBanner.resend")}
-            </Text>
-          </Pressable>
         </View>
-      )}
+      ) : null}
 
-      {companiesLoading && (
-        <View style={styles.centered}>
-          <ActivityIndicator color={colors.accent} />
-        </View>
-      )}
-
-      {!companiesLoading && !company && (
-        <View style={styles.centered}>
-          <Ionicons name="business-outline" size={40} color={colors.textMuted} />
-          <Text style={styles.emptyTitle}>{t("myJobs.noCompanyTitle")}</Text>
-          <Text style={styles.emptySubtitle}>{t("myJobs.noCompanySubtitle")}</Text>
-          <Pressable style={styles.primaryButton} onPress={() => router.push("/company-profile")}>
-            <Text style={styles.primaryButtonText}>{t("myJobs.createCompany")}</Text>
-          </Pressable>
-        </View>
-      )}
-
-      {company && (
-        <FlatList
+      {company ? (
+        <FlatList showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
           data={jobs ?? []}
           keyExtractor={(j) => j.id}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: TAB_BAR_CLEARANCE }}
+          ListHeaderComponent={
+            <View style={{ gap: 14, paddingBottom: 14 }}>
+              <VerifyBanner />
+              <PlanBanner />
+              {jobsLoading ? <CardSkeletons /> : null}
+            </View>
+          }
           renderItem={({ item }) => (
             <MyJobRow
               job={item}
@@ -164,66 +170,25 @@ export default function MyJobsScreen() {
             />
           )}
           ListEmptyComponent={
-            !jobsLoading ? (
-              <View style={styles.centered}>
-                <Text style={styles.emptySubtitle}>{t("myJobs.noJobs")}</Text>
-                <Pressable style={styles.primaryButton} onPress={handlePostJob}>
-                  <Text style={styles.primaryButtonText}>{t("myJobs.postJob")}</Text>
-                </Pressable>
-              </View>
-            ) : null
+            jobsLoading ? null : isError ? (
+              <EmptyState icon={WifiOff} tone="danger" message={t("explore.error")} actionLabel={t("jobDetails.retry")} onAction={() => refetch()} />
+            ) : (
+              <EmptyState icon={Building2} message={t("myJobs.noJobs")} actionLabel={t("myJobs.postJob")} onAction={handlePostJob} />
+            )
           }
         />
-      )}
-    </SafeAreaView>
+      ) : null}
+
+      <AlertDialog
+        open={limitOpen}
+        title={t("myJobs.limitReachedTitle")}
+        message={t("myJobs.limitReachedMessage")}
+        onClose={() => setLimitOpen(false)}
+        actions={[
+          { label: t("profile.cancel"), style: "cancel" },
+          { label: t("myJobs.upgrade"), onPress: () => router.push("/billing") },
+        ]}
+      />
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  header: {
-    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
-    paddingHorizontal: 20, paddingVertical: 14, backgroundColor: colors.surface,
-  },
-  brand: { flexDirection: "row", alignItems: "center", gap: 10 },
-  headerActions: { flexDirection: "row", alignItems: "center", gap: 16 },
-  logoBadge: {
-    width: 34, height: 34, borderRadius: 10, backgroundColor: colors.textPrimary,
-    alignItems: "center", justifyContent: "center",
-  },
-  logoLetter: { color: colors.accent, fontWeight: "800", fontSize: 16, fontFamily: "InstrumentSerif_400Regular" },
-  headerTitle: { fontSize: 18, fontWeight: "800", color: colors.textPrimary, fontFamily: "InstrumentSerif_400Regular" },
-  verifyBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    backgroundColor: colors.accentSoft,
-    marginHorizontal: 20,
-    marginTop: 14,
-    padding: 14,
-    borderRadius: 16,
-  },
-  verifyBannerText: { flex: 1 },
-  verifyBannerTitle: { fontSize: 13, fontWeight: "700", color: colors.textPrimary },
-  verifyBannerSubtitle: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
-  verifyBannerAction: { fontSize: 13, fontWeight: "700", color: colors.accent },
-  centered: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, paddingHorizontal: 32, paddingTop: 60 },
-  emptyTitle: { fontSize: 17, fontWeight: "800", color: colors.textPrimary, textAlign: "center" },
-  emptySubtitle: { fontSize: 14, color: colors.textSecondary, textAlign: "center" },
-  primaryButton: { backgroundColor: colors.accent, borderRadius: 999, paddingHorizontal: 22, paddingVertical: 12, marginTop: 6 },
-  primaryButtonText: { color: colors.surface, fontWeight: "700", fontSize: 14 },
-  listContent: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24 },
-  card: {
-    backgroundColor: colors.surface, borderRadius: 18, padding: 18, marginBottom: 14,
-    borderWidth: 1, borderColor: "#EEEEF0",
-  },
-  cardRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
-  cardLeft: { flex: 1, marginRight: 12 },
-  cardTitle: { fontSize: 17, fontWeight: "700", color: colors.textPrimary },
-  cardMeta: { fontSize: 13, color: colors.textMuted, marginTop: 4 },
-  statusPill: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999 },
-  statusText: { fontWeight: "700", fontSize: 12 },
-  cardFooter: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 14 },
-  editButton: { flexDirection: "row", alignItems: "center", gap: 6 },
-  editText: { fontWeight: "700", fontSize: 13, color: colors.textPrimary },
-});

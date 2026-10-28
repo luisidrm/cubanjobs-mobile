@@ -1,5 +1,5 @@
-import { Pressable, StyleSheet, Text } from "react-native";
-import { colors } from "../../theme/colors";
+import { View } from "react-native";
+import { Chip } from "../ds";
 
 interface Props {
   label: string;
@@ -7,37 +7,11 @@ interface Props {
   onPress: () => void;
 }
 
+/** Filter chip (36pt): white hairline when off, accent when on. Spaced for horizontal chip rows. */
 export function FilterChip({ label, active, onPress }: Props) {
   return (
-    <Pressable
-      onPress={onPress}
-      style={[styles.chip, active && styles.chipActive]}
-    >
-      <Text style={[styles.text, active && styles.textActive]}>{label}</Text>
-    </Pressable>
+    <View style={{ marginRight: 8 }}>
+      <Chip variant="filter" label={label} selected={active} onPress={onPress} />
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  chip: {
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: colors.chipBorder,
-    backgroundColor: colors.surface,
-    marginRight: 10,
-  },
-  chipActive: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
-  },
-  text: {
-    color: colors.chipText,
-    fontWeight: "600",
-    fontSize: 14,
-  },
-  textActive: {
-    color: colors.surface,
-  },
-});
