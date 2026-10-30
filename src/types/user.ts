@@ -40,6 +40,8 @@ export interface UserProfile {
 export interface SkillCatalogItem {
   id: string;
   name: string;
+  /** Spanish display name; null when there is no translation yet. */
+  nameEs: string | null;
 }
 
 /** Shape returned by the public, unauthenticated GET /api/v1/users/:id — a

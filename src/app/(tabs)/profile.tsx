@@ -37,6 +37,7 @@ import { AddSkillChip, SkillChip } from "../../components/users/SkillChip";
 import { confirmAction } from "../../lib/confirm";
 import { useAppColorScheme } from "../../theme/scheme";
 import { isEmployeePlanActive } from "../../lib/plan-status";
+import { useSkillLabel } from "../../lib/skills";
 import { setThemePreference } from "../../lib/theme-preference";
 import { registerForPushNotificationsAsync } from "../../lib/pushNotifications";
 import { showErrorToast } from "../../lib/toast";
@@ -47,6 +48,7 @@ import type { WorkExperience } from "../../types/user";
 
 export default function ProfileScreen() {
   const { t, i18n } = useTranslation()
+  const skillLabel = useSkillLabel();
   const router = useRouter();
   const dispatch = useDispatch();
   const { data: user, isLoading, isError, refetch } = useGetMeQuery();
@@ -427,7 +429,7 @@ export default function ProfileScreen() {
                   </View>
                   <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                     {user.skills.map((s) => (
-                      <SkillChip key={s.id} label={s.skill} onRemove={() => handleRemoveSkill(s.id)} />
+                      <SkillChip key={s.id} label={skillLabel(s.skill)} onRemove={() => handleRemoveSkill(s.id)} />
                     ))}
                     <AddSkillChip onPress={() => setSkillSheetOpen(true)} />
                   </View>

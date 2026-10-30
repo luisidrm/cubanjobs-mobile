@@ -1,5 +1,6 @@
 import { ChevronRight, MapPin } from "lucide-react-native";
 import { View } from "react-native";
+import { useSkillLabel } from "../../lib/skills";
 import { useTokens } from "../../theme/use-tokens";
 import type { WorkerSummary } from "../../types/user";
 import { Card, Icon, Text } from "../ds";
@@ -13,6 +14,7 @@ interface Props {
 /** Same anatomy as the job card: 44pt initial tile, name + location, chevron; bio and up to 3 skills below. */
 export function WorkerCard({ worker, onPress }: Props) {
   const p = useTokens();
+  const skillLabel = useSkillLabel();
   const name = [worker.firstName, worker.lastName].filter(Boolean).join(" ") || "?";
 
   return (
@@ -49,7 +51,7 @@ export function WorkerCard({ worker, onPress }: Props) {
       {worker.skills.length > 0 ? (
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
           {worker.skills.slice(0, 3).map((s) => (
-            <SkillChip key={s.id} label={s.skill} />
+            <SkillChip key={s.id} label={skillLabel(s.skill)} />
           ))}
         </View>
       ) : null}

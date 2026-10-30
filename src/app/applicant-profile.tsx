@@ -2,6 +2,7 @@ import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 import { Link2, MapPin, MessageCircle, WifiOff } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
+import { useSkillLabel } from "../lib/skills";
 import { ActivityIndicator, Linking, ScrollView, View } from "react-native";
 import { useGetPublicProfileQuery } from "../../store/api/usersApi";
 import { Button, Card, Icon, List, ListRow, NavBar, Screen, Text, CardSkeletons, EmptyState } from "../components/ds";
@@ -10,6 +11,7 @@ import { useTokens } from "../theme/use-tokens";
 
 export default function ApplicantProfileScreen() {
   const { t } = useTranslation();
+  const skillLabel = useSkillLabel();
   const p = useTokens();
   const { userId } = useLocalSearchParams<{ userId: string }>();
   const { data: profile, isLoading, isError, refetch } = useGetPublicProfileQuery(userId);
@@ -105,7 +107,7 @@ export default function ApplicantProfileScreen() {
               <Text variant="title3">{t("applicantProfile.skills")}</Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                 {profile.skills.map((s) => (
-                  <SkillChip key={s.id} label={s.skill} />
+                  <SkillChip key={s.id} label={skillLabel(s.skill)} />
                 ))}
               </View>
             </View>

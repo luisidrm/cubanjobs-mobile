@@ -31,6 +31,7 @@ import {
   TextField,
 } from "../components/ds";
 import { appendFilePart } from "../lib/upload";
+import { skillMatches, useSkillLabel } from "../lib/skills";
 import { showErrorToast } from "../lib/toast";
 import { useTokens } from "../theme/use-tokens";
 import { JoinCompany } from "../components/team/JoinCompany";
@@ -63,6 +64,7 @@ export default function OnboardingScreen() {
 
   // ---- skills (employee) ----
   const { data: catalog } = useGetSkillsCatalogQuery(undefined, { skip: !me || isEmployer });
+  const skillLabel = useSkillLabel();
   const [search, setSearch] = useState("");
   const [customSkill, setCustomSkill] = useState("");
   const [addSkill, { isLoading: addingSkill }] = useAddSkillMutation();
@@ -76,7 +78,7 @@ export default function OnboardingScreen() {
   const filteredCatalog = useMemo(() => {
     if (!catalog) return [];
     const q = search.trim().toLowerCase();
-    return q ? catalog.filter((c) => c.name.toLowerCase().includes(q)) : catalog;
+    return q ? catalog.filter((c) => skillMatches(c, q)) : catalog;
   }, [catalog, search]);
 
   async function handleToggleSkill(name: string) {
@@ -347,7 +349,7 @@ export default function OnboardingScreen() {
                 {filteredCatalog.map((item) => (
                   <Chip
                     key={item.id}
-                    label={item.name}
+                    label={skillLabel(item.name)}
                     selected={addedSkillNames.has(item.name.toLowerCase())}
                     disabled={addingSkill}
                     onPress={() => handleToggleSkill(item.name)}
@@ -377,8 +379,8 @@ export default function OnboardingScreen() {
                       <Chip
                         key={sk.id}
                         variant="removable"
-                        label={sk.skill}
-                        removeLabel={`${t("onboarding.remove")} ${sk.skill}`}
+                        label={skillLabel(sk.skill)}
+                        removeLabel={`${t("onboarding.remove")} ${skillLabel(sk.skill)}`}
                         onRemove={() => removeSkill(sk.id)}
                       />
                     ))}

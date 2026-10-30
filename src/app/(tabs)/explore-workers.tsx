@@ -9,6 +9,7 @@ import { Button, CardSkeletons, EmptyState, NavBar, Screen, TextField } from "..
 import { WorkerCard } from "../../components/Jobs/WorkerCard";
 import { FilterChip } from "../../components/tabs/FilterChip";
 import { hasCandidateSearchAccess } from "../../lib/plans";
+import { useSkillLabel } from "../../lib/skills";
 import { TAB_BAR_CLEARANCE } from "../../theme/tokens";
 import type { WorkerSearchFilters } from "../../types/user";
 
@@ -23,6 +24,7 @@ export default function ExploreWorkersScreen() {
   const hasAccess = !!company && hasCandidateSearchAccess(company.planTier);
 
   const { data: skillsList } = useGetWorkerSkillsQuery(undefined, { skip: !hasAccess });
+  const skillLabel = useSkillLabel();
 
   const toggleSkill = (skill: string) => {
     setActiveSkills((prev) => {
@@ -88,7 +90,7 @@ export default function ExploreWorkersScreen() {
                 {skillsList.map((skill) => (
                   <FilterChip
                     key={skill}
-                    label={skill}
+                    label={skillLabel(skill)}
                     active={activeSkills.has(skill)}
                     onPress={() => toggleSkill(skill)}
                   />
