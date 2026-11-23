@@ -22,6 +22,10 @@ import {
 import { JobCard } from "../components/Jobs/JobCard";
 import { useSession } from "../lib/session";
 import { homeFor } from "../lib/home";
+import { usePagedOffset } from "../lib/use-paged-offset";
+import { ListFooter } from "../components/ds/ListFooter";
+
+const PAGE_SIZE = 20;
 
 /**
  * First screen for signed-out users ("Browse-first"): real jobs before sign-up.
@@ -35,7 +39,12 @@ export default function WelcomeScreen() {
   const [guestOpen, setGuestOpen] = useState(false);
 
   const { data: me } = useGetMeQuery(undefined, { skip: status !== "authenticated" });
-  const { data: jobs, isLoading, isError, refetch } = useSearchJobsQuery({ limit: 20, offset: 0, ...(query.trim() ? { q: query.trim() } : {}) });
+  const paging = usePagedOffset(query.trim());
+  const { data: jobs = [], isLoading, isFetching, isError, refetch } = useSearchJobsQuery({
+    limit: PAGE_SIZE,
+    offset: paging.offset,
+    ...(query.trim() ? { q: query.trim() } : {}),
+  });
 
   // Already logged in on app launch — skip to the role's home tab.
   if (status === "authenticated") {
@@ -61,7 +70,7 @@ export default function WelcomeScreen() {
       </View>
 
       <FlatList showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
-        data={jobs ?? []}
+        data={jobs}
         keyExtractor={(j) => j.id}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: ACTION_BAR_CLEARANCE + 40 }}
@@ -103,6 +112,11 @@ export default function WelcomeScreen() {
             <EmptyState icon={SearchX} message={t("explore.empty")} actionLabel={t("explore.clearFilters")} onAction={() => setQuery("")} />
           )
         }
+        onEndReached={() => {
+          if (!isFetching && jobs.length >= paging.offset + PAGE_SIZE) paging.loadMore(jobs.length);
+        }}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={<ListFooter loading={isFetching && !isLoading && jobs.length > 0} />}
       />
 
       <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, top: 0, pointerEvents: "box-none" }}>

@@ -12,6 +12,10 @@ import { hasCandidateSearchAccess } from "../../lib/plans";
 import { useSkillLabel } from "../../lib/skills";
 import { TAB_BAR_CLEARANCE } from "../../theme/tokens";
 import type { WorkerSearchFilters } from "../../types/user";
+import { usePagedOffset } from "../../lib/use-paged-offset";
+import { ListFooter } from "../../components/ds/ListFooter";
+
+const PAGE_SIZE = 20;
 
 export default function ExploreWorkersScreen() {
   const { t } = useTranslation();
@@ -38,14 +42,16 @@ export default function ExploreWorkersScreen() {
     });
   };
 
-  const filters = useMemo<WorkerSearchFilters>(() => {
-    const f: WorkerSearchFilters = { limit: 20, offset: 0 };
+  const baseFilters = useMemo<WorkerSearchFilters>(() => {
+    const f: WorkerSearchFilters = { limit: PAGE_SIZE };
     if (query.trim()) f.q = query.trim();
     if (activeSkills.size > 0) f.skills = Array.from(activeSkills).join(",");
     return f;
   }, [query, activeSkills]);
+  const paging = usePagedOffset(JSON.stringify(baseFilters));
+  const filters = useMemo<WorkerSearchFilters>(() => ({ ...baseFilters, offset: paging.offset }), [baseFilters, paging.offset]);
 
-  const { data: workers, isLoading, isError, refetch } = useSearchWorkersQuery(filters, { skip: !hasAccess });
+  const { data: workers = [], isLoading, isFetching, isError, refetch } = useSearchWorkersQuery(filters, { skip: !hasAccess });
 
   if (!companyLoading && !hasAccess) {
     return (
@@ -66,7 +72,7 @@ export default function ExploreWorkersScreen() {
       <NavBar large title={t("exploreWorkers.title")} subtitle={t("exploreWorkers.subtitle")} />
 
       <FlatList showsVerticalScrollIndicator={false}
-        data={workers ?? []}
+        data={workers}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: TAB_BAR_CLEARANCE }}
         keyboardShouldPersistTaps="handled"
@@ -113,7 +119,12 @@ export default function ExploreWorkersScreen() {
             <EmptyState icon={SearchX} message={t("exploreWorkers.empty")} actionLabel={t("explore.clearFilters")} onAction={() => { setQuery(""); setActiveSkills(new Set()); }} />
           )
         }
-        onRefresh={refetch}
+        onEndReached={() => {
+          if (!isFetching && workers.length >= paging.offset + PAGE_SIZE) paging.loadMore(workers.length);
+        }}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={<ListFooter loading={isFetching && !isLoading && workers.length > 0} />}
+        onRefresh={() => (paging.offset > 0 ? paging.reset() : refetch())}
         refreshing={false}
       />
     </Screen>

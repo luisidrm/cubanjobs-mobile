@@ -1,5 +1,6 @@
 import { baseQuery } from "@/lib/baseQuery";
 import { createApi } from "@reduxjs/toolkit/query/react";
+import { pagedList } from "./paging";
 import type {
   Currency,
   EmployerJob,
@@ -42,6 +43,7 @@ export const jobsApi = createApi({
         params: filters,
       }),
       transformResponse: (response: ApiResponse<Job[]>) => response.data,
+      ...pagedList<Job, JobSearchFilters>(),
       providesTags: (result) =>
         result
           ? [

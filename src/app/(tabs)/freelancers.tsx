@@ -10,6 +10,8 @@ import { authorName, useFreelancerAccess } from "../../lib/freelancer";
 import { TAB_BAR_CLEARANCE } from "../../theme/tokens";
 import { useTokens } from "../../theme/use-tokens";
 import type { FreelancerPostSummary } from "../../types/freelancer";
+import { usePagedOffset } from "../../lib/use-paged-offset";
+import { ListFooter } from "../../components/ds/ListFooter";
 
 function PostCard({ post, onPress }: { post: FreelancerPostSummary; onPress: () => void }) {
   const { t } = useTranslation();
@@ -53,6 +55,8 @@ function PostCard({ post, onPress }: { post: FreelancerPostSummary; onPress: () 
   );
 }
 
+const PAGE_SIZE = 30;
+
 /** Freelancer board: paying employees and paid companies browse offers; paying employees can also post. */
 export default function FreelancersScreen() {
   const { t } = useTranslation();
@@ -60,8 +64,9 @@ export default function FreelancersScreen() {
   const { me, isLoading: accessLoading, canBrowse } = useFreelancerAccess();
   const [query, setQuery] = useState("");
 
-  const { data: posts, isLoading, isError, refetch } = useListFreelancerPostsQuery(
-    { q: query.trim() || undefined, limit: 30, offset: 0 },
+  const paging = usePagedOffset(query.trim());
+  const { data: posts = [], isLoading, isFetching, isError, refetch } = useListFreelancerPostsQuery(
+    { q: query.trim() || undefined, limit: PAGE_SIZE, offset: paging.offset },
     { skip: !canBrowse }
   );
 
@@ -84,7 +89,7 @@ export default function FreelancersScreen() {
       <NavBar large title={t("freelancers.title")} subtitle={t("freelancers.subtitle")} />
 
       <FlatList showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
-        data={posts ?? []}
+        data={posts}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: TAB_BAR_CLEARANCE }}
         keyboardShouldPersistTaps="handled"
@@ -113,7 +118,12 @@ export default function FreelancersScreen() {
             <EmptyState icon={SearchX} message={query.trim() ? t("freelancers.emptySearch") : t("freelancers.empty")} />
           )
         }
-        onRefresh={refetch}
+        onEndReached={() => {
+          if (!isFetching && posts.length >= paging.offset + PAGE_SIZE) paging.loadMore(posts.length);
+        }}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={<ListFooter loading={isFetching && !isLoading && posts.length > 0} />}
+        onRefresh={() => (paging.offset > 0 ? paging.reset() : refetch())}
         refreshing={false}
       />
     </Screen>

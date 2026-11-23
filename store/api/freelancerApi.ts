@@ -1,5 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQuery } from "@/lib/baseQuery";
+import { pagedList } from "./paging";
 import type {
   FreelancerListFilters,
   FreelancerPostDetail,
@@ -26,6 +27,7 @@ export const freelancerApi = createApi({
     >({
       query: (params) => ({ url: "/api/v1/freelancer-posts", params }),
       transformResponse: unwrap<FreelancerPostSummary[]>,
+      ...pagedList<FreelancerPostSummary, FreelancerListFilters>(),
       providesTags: [{ type: "FreelancerPost", id: "LIST" }],
     }),
 

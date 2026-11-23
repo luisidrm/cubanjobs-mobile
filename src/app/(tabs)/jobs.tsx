@@ -13,8 +13,12 @@ import { FilterChip } from "../../components/tabs/FilterChip";
 import { TAB_BAR_CLEARANCE } from "../../theme/tokens";
 import { useTokens } from "../../theme/use-tokens";
 import type { Currency, JobSearchFilters } from "../../types/job";
+import { usePagedOffset } from "../../lib/use-paged-offset";
+import { ListFooter } from "../../components/ds/ListFooter";
 
 type ChipKey = "remote" | "CUP" | "MLC" | "USD" | "fullTime";
+
+const PAGE_SIZE = 20;
 
 export default function ExploreScreen() {
   const { t } = useTranslation();
@@ -56,8 +60,8 @@ export default function ExploreScreen() {
     });
   };
 
-  const filters = useMemo<JobSearchFilters>(() => {
-    const f: JobSearchFilters = { limit: 20, offset: 0 };
+  const baseFilters = useMemo<JobSearchFilters>(() => {
+    const f: JobSearchFilters = { limit: PAGE_SIZE };
     if (query.trim()) f.q = query.trim();
     if (active.has("remote")) f.isRemote = true;
     if (active.has("fullTime")) f.jobType = "full_time";
@@ -66,8 +70,10 @@ export default function ExploreScreen() {
     if (activeTagIds.size > 0) f.tagIds = Array.from(activeTagIds).join(",");
     return f;
   }, [query, active, activeTagIds]);
+  const paging = usePagedOffset(JSON.stringify(baseFilters));
+  const filters = useMemo<JobSearchFilters>(() => ({ ...baseFilters, offset: paging.offset }), [baseFilters, paging.offset]);
 
-  const { data: jobs, isLoading, isError, refetch } = useSearchJobsQuery(filters);
+  const { data: jobs = [], isLoading, isFetching, isError, refetch } = useSearchJobsQuery(filters);
 
   const { data: savedJobs } = useGetMySavedJobsQuery();
   const savedJobIds = useMemo(() => new Set(savedJobs?.map((s) => s.jobId)), [savedJobs]);
@@ -84,7 +90,7 @@ export default function ExploreScreen() {
       />
 
       <FlatList showsVerticalScrollIndicator={false}
-        data={jobs ?? []}
+        data={jobs}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: TAB_BAR_CLEARANCE }}
         keyboardShouldPersistTaps="handled"
@@ -164,7 +170,12 @@ export default function ExploreScreen() {
             />
           )
         }
-        onRefresh={refetch}
+        onEndReached={() => {
+          if (!isFetching && jobs.length >= paging.offset + PAGE_SIZE) paging.loadMore(jobs.length);
+        }}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={<ListFooter loading={isFetching && !isLoading && jobs.length > 0} />}
+        onRefresh={() => (paging.offset > 0 ? paging.reset() : refetch())}
         refreshing={false}
       />
     </Screen>
