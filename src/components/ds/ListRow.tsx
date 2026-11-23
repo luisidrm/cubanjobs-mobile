@@ -66,7 +66,7 @@ export function ListRow({
               justifyContent: "center",
             }}
           >
-            <Icon icon={icon} size={18} color="#FFFFFF" />
+            <Icon icon={icon} size={18} color={destructive || iconBg ? "#FFFFFF" : p.onAccent} />
           </View>
         ) : null)}
       <View style={{ flex: 1, minWidth: 0 }}>

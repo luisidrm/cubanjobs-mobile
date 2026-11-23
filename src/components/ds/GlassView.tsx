@@ -43,10 +43,9 @@ export function GlassView({
   return (
     <View style={[{ borderRadius: radius }, shadow ? shadows.glass : null, style]}>
       <View
-        pointerEvents="none"
         style={[
           StyleSheet.absoluteFill,
-          { borderRadius: radius, overflow: "hidden", borderWidth: 1, borderColor: p.glassBorder },
+          { borderRadius: radius, overflow: "hidden", borderWidth: 1, borderColor: p.glassBorder, pointerEvents: "none" },
         ]}
       >
         {Platform.OS === "ios" ? (

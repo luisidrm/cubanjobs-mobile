@@ -45,8 +45,7 @@ export function FloatingTabBar({ state, descriptors, navigation, icons }: Floati
   const insets = useSafeAreaInsets();
   return (
     <View
-      pointerEvents="box-none"
-      style={{ position: "absolute", left: 16, right: 16, bottom: Math.max(insets.bottom, 0) + layout.tabBarOffset - (insets.bottom > 0 ? 8 : 0) }}
+      style={{ position: "absolute", left: 16, right: 16, bottom: Math.max(insets.bottom, 0) + layout.tabBarOffset - (insets.bottom > 0 ? 8 : 0) , pointerEvents: "box-none" }}
     >
       <GlassView radius={radius.pill} strength="regular" intensity={70} style={{ flexDirection: "row", padding: 6 }}>
         {state.routes.map((route, i) => {

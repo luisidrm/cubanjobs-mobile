@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { View, type StyleProp, type ViewStyle } from "react-native";
+import { View, type StyleProp, type ViewStyle, Platform } from "react-native";
 import { radius as r, shadows } from "../../theme/tokens";
 import { useTokens } from "../../theme/use-tokens";
 import { GlassView } from "./GlassView";
@@ -51,7 +51,13 @@ export function Card({
     );
   if (!onPress) return body;
   return (
-    <PressableScale accessibilityRole="button" accessibilityLabel={accessibilityLabel} onPress={onPress}>
+    <PressableScale
+      // On the web a "button" role renders a real <button>, and cards often hold their own
+      // buttons (the job bookmark), which is invalid HTML. Phones keep the button role.
+      accessibilityRole={Platform.OS === "web" ? undefined : "button"}
+      accessibilityLabel={accessibilityLabel}
+      onPress={onPress}
+    >
       {body}
     </PressableScale>
   );

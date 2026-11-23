@@ -2,12 +2,13 @@ import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Building2, Link2, MapPin, WifiOff } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Linking, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { useGetCompanyByIdQuery } from "../../../store/api/companiesApi";
 import { useSearchJobsQuery } from "../../../store/api/jobsApi";
 import { JobCard } from "../../components/Jobs/JobCard";
-import { Button, Icon, List, ListRow, NavBar, Screen, Text, CardSkeletons, EmptyState } from "../../components/ds";
+import { Icon, List, ListRow, NavBar, Screen, Text, CardSkeletons, EmptyState } from "../../components/ds";
 import { useTokens } from "../../theme/use-tokens";
+import { openExternal } from "../../lib/openExternal";
 
 export default function CompanyScreen() {
   const { t } = useTranslation();
@@ -79,7 +80,7 @@ export default function CompanyScreen() {
                 icon={Link2}
                 title={company.website}
                 accessory="chevron"
-                onPress={() => Linking.openURL(company.website as string)}
+                onPress={() => openExternal(company.website as string, t("common.cantOpenLink"))}
               />
             ) : null}
             {company.industry ? <ListRow title={t("companyView.industry")} value={company.industry} /> : null}

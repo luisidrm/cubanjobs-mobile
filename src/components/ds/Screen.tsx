@@ -20,7 +20,7 @@ export function Screen({ children, safeTop = true, wash = true, style }: ScreenP
   return (
     <View style={[{ flex: 1, backgroundColor: p.bgApp, paddingTop: safeTop ? insets.top : 0 }, style]}>
       {wash ? (
-        <View pointerEvents="none" style={[StyleSheet.absoluteFill, { height: 360 }]}>
+        <View style={[StyleSheet.absoluteFill, { height: 360, pointerEvents: "none" }]}>
           <Svg width="100%" height="100%">
             <Defs>
               <RadialGradient id="wash" cx="50%" cy="0%" rx="90%" ry="100%" fx="50%" fy="0%">

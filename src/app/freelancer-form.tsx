@@ -2,7 +2,7 @@ import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ImagePlus, Lock, X } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from "react-native";
 import {
@@ -69,8 +69,10 @@ export default function FreelancerFormScreen() {
   const [telegram, setTelegram] = useState("");
   const [pending, setPending] = useState<ImagePicker.ImagePickerAsset[]>([]);
 
-  useEffect(() => {
-    if (!existing) return;
+  // Seed once per post; later image changes come from the query, not these fields.
+  const [seededId, setSeededId] = useState<string | undefined>(undefined);
+  if (existing && existing.id !== seededId) {
+    setSeededId(existing.id);
     setTitle(existing.title);
     setDescription(existing.description);
     setLinkUrl(existing.linkUrl ?? "");
@@ -78,9 +80,7 @@ export default function FreelancerFormScreen() {
     setWhatsapp(existing.contactWhatsapp ?? "");
     setEmail(existing.contactEmail ?? "");
     setTelegram(existing.contactTelegram ?? "");
-    // Seed once per post; later image changes come from the query, not these fields.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [existing?.id]);
+  }
 
   const savedImages = existing?.images ?? [];
   const slotsLeft = MAX_FREELANCER_IMAGES - savedImages.length - pending.length;
@@ -249,7 +249,7 @@ function Thumb({ uri, label, onRemove }: { uri: string; label: string; onRemove:
         onPress={onRemove}
         accessibilityRole="button"
         accessibilityLabel={label}
-        hitSlop={8}
+        hitSlop={10}
         style={{ position: "absolute", top: 4, right: 4, width: 24, height: 24, borderRadius: 12, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center" }}
       >
         <Icon icon={X} size={14} color="#fff" />

@@ -3,11 +3,11 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { ExternalLink, Eye, Lock, Mail, MessageCircle, Pencil, Phone, SearchX, Send } from "lucide-react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Linking, Pressable, ScrollView, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 import { useGetFreelancerPostQuery } from "../../../store/api/freelancerApi";
 import { Button, EmptyState, IconButton, NavBar, Screen, Text } from "../../components/ds";
 import { type ContactLink, authorName, contactLinks } from "../../lib/freelancer";
-import { showErrorToast } from "../../lib/toast";
+import { openExternal } from "../../lib/openExternal";
 import { useTokens } from "../../theme/use-tokens";
 
 const CONTACT_ICONS = { phone: Phone, whatsapp: MessageCircle, email: Mail, telegram: Send } as const;
@@ -22,13 +22,7 @@ export default function FreelancerPostScreen() {
 
   const status = error && "status" in error ? error.status : undefined;
 
-  async function open(url: string) {
-    try {
-      await Linking.openURL(url);
-    } catch {
-      showErrorToast(url);
-    }
-  }
+  const open = (url: string) => openExternal(url, t("common.cantOpenLink"));
 
   const contacts: ContactLink[] = post ? contactLinks(post) : [];
 

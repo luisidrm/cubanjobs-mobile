@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react-native";
 import { forwardRef, useState, type ReactNode } from "react";
-import { TextInput, View, type StyleProp, type TextInputProps, type ViewStyle } from "react-native";
+import { Platform, TextInput, View, type StyleProp, type TextInputProps, type ViewStyle } from "react-native";
 import { fontFamily, radius } from "../../theme/tokens";
 import { useTokens } from "../../theme/use-tokens";
 import { Icon } from "./Icon";
@@ -77,6 +77,9 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
             color: editable ? p.text1 : p.textDisabled,
             textAlignVertical: multiline ? "top" : "center",
             minHeight: multiline ? 22 * rows : undefined,
+            // On the web the browser draws its own black focus outline around the field, inside
+            // the accent border. The container's border already shows focus, so remove it.
+            ...(Platform.OS === "web" ? ({ outlineStyle: "none", outlineWidth: 0, borderWidth: 0, backgroundColor: "transparent" } as object) : null),
           }}
           {...rest}
         />

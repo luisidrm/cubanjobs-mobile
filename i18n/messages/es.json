@@ -188,7 +188,11 @@
       "title": "Notificaciones",
       "subtitle": "Alertas de empleo y actualizaciones",
       "permissionDenied": "Se denegó el permiso de notificaciones. Puedes habilitarlo en la configuración de tu dispositivo.",
-      "error": "No se pudo actualizar tu configuración de notificaciones. Inténtalo de nuevo."
+      "error": "No se pudo actualizar tu configuración de notificaciones. Inténtalo de nuevo.",
+      "unsupported": "Las notificaciones push solo funcionan en un teléfono físico.",
+      "openSettingsTitle": "Las notificaciones están desactivadas",
+      "openSettingsMessage": "Actívalas para Brújula en los ajustes de tu teléfono para recibir novedades de tus solicitudes.",
+      "openSettings": "Abrir ajustes"
     },
     "language": "Idioma",
     "privacyPolicy": {
@@ -203,7 +207,10 @@
     "darkMode": {
       "title": "Modo oscuro",
       "subtitle": "Más cómodo para la vista de noche"
-    }
+    },
+    "addSkill": "Añadir habilidad",
+    "pdfDocument": "Documento PDF",
+    "noCv": "Ningún CV subido"
   },
   "companyView": {
     "title": "Empresa",
@@ -464,7 +471,12 @@
   },
   "common": {
     "back": "Atrás",
-    "search": "Buscar"
+    "search": "Buscar",
+    "edit": "Editar",
+    "add": "Añadir",
+    "upload": "Subir",
+    "delete": "Eliminar",
+    "cantOpenLink": "No se pudo abrir el enlace."
   },
   "plans": {
     "title": "Mi plan",
@@ -775,5 +787,9 @@
       "notFound": "Esta publicación no está disponible.",
       "by": "Por {{name}}"
     }
+  },
+  "job": {
+    "save": "Guardar",
+    "unsave": "Quitar de guardados"
   }
 }

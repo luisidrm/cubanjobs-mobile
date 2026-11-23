@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { FileText, MessageCircle, User, Users, WifiOff } from "lucide-react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, FlatList, Linking, ScrollView, View } from "react-native";
+import { ActivityIndicator, FlatList, ScrollView, View } from "react-native";
 import {
   useGetApplicationsForJobQuery,
   useUpdateApplicationNotesMutation,
@@ -14,6 +14,7 @@ import { Button, Card, NavBar, Screen, Text, TextField, CardSkeletons, EmptyStat
 import { FilterChip } from "../components/tabs/FilterChip";
 import { useTokens } from "../theme/use-tokens";
 import type { ApplicationWithApplicant, EmployerSettableStatus } from "../types/application";
+import { openExternal } from "../lib/openExternal";
 
 const SETTABLE_STATUSES: EmployerSettableStatus[] = ["pending", "reviewed", "accepted", "rejected"];
 
@@ -71,7 +72,7 @@ function ApplicantCard({ application }: { application: ApplicationWithApplicant 
       ) : null}
 
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-        <Button size="sm" variant="secondary" icon={FileText} title={t("jobApplicants.viewResume")} onPress={() => Linking.openURL(application.resumeUrl)} />
+        <Button size="sm" variant="secondary" icon={FileText} title={t("jobApplicants.viewResume")} onPress={() => openExternal(application.resumeUrl, t("common.cantOpenLink"))} />
         <Button
           size="sm"
           variant="secondary"
@@ -85,7 +86,7 @@ function ApplicantCard({ application }: { application: ApplicationWithApplicant 
             variant="tinted"
             icon={MessageCircle}
             title={t("jobApplicants.contactWhatsapp")}
-            onPress={() => Linking.openURL(`https://wa.me/${whatsappDigits}`)}
+            onPress={() => openExternal(`https://wa.me/${whatsappDigits}`, t("common.cantOpenLink"))}
           />
         ) : null}
       </View>
@@ -130,7 +131,6 @@ function ApplicantCard({ application }: { application: ApplicationWithApplicant 
 
 export default function JobApplicantsScreen() {
   const { t } = useTranslation();
-  const p = useTokens();
   const { jobId } = useLocalSearchParams<{ jobId: string }>();
   const { data: applications, isLoading, isError, refetch } = useGetApplicationsForJobQuery(jobId);
 

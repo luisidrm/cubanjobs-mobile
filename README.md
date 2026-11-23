@@ -10,7 +10,8 @@ Expo (React Native) app for job seekers and employers. Talks to the Brújula API
 
 1. Start the API (see `../back/README.md`).
 2. Copy `.env.example` to `.env`. `EXPO_PUBLIC_API_URL` must start with `EXPO_PUBLIC_` or Expo will not embed it. On a physical phone use your computer's LAN address (`http://192.168.x.x:5000`), not `localhost`.
-3. `npm install`, then `npx expo start`.
+3. `npm install`, then `npm start` (or `npm run web` for the web version).
+   Use these scripts, not a bare `npx expo start`: Metro compiles the native, web and web-server bundles together and runs out of Node's default 2 GB heap, so the scripts raise the limit to 4 GB. Add `-c` only when you need to clear the cache, since rebuilding from scratch is the heaviest step.
 
 Checks: `npx tsc --noEmit`. CI also bundles the app with `npx expo export --platform android`.
 

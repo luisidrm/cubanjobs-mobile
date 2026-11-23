@@ -5,36 +5,22 @@ import { useRouter } from "expo-router";
 import { Bell, Building2, Camera, Compass, CreditCard, FileText, Globe, Lock, LogOut, MapPin, Moon, Pencil, Plus, Sparkles, Trash2, Upload, WifiOff } from "lucide-react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Alert, Platform, ScrollView, View } from "react-native";
+import { Linking, ActivityIndicator, Alert, Platform, ScrollView, View } from "react-native";
 import { useDispatch } from "react-redux";
 import SuperTokens from "supertokens-react-native";
 import { setLanguage } from "../../../i18n/i18n";
-import { applicationsApi } from "../../../store/api/applicationApi";
-import { billingApi } from "../../../store/api/billingApi";
-import { plansApi } from "../../../store/api/plansApi";
-import { companiesApi, useGetMyCompaniesQuery } from "../../../store/api/companiesApi";
-import { notificationsApi } from "../../../store/api/notificationsApi";
-import { savedJobsApi } from "../../../store/api/savedJobsApi";
-import {
-  useAddExperienceMutation,
-  useAddSkillMutation,
-  useDeleteAccountMutation,
-  useDeleteExperienceMutation,
-  useGetMeQuery,
-  useRemoveSkillMutation,
-  useUpdateExperienceMutation,
-  useUpdateProfileMutation,
-  useUploadAvatarMutation,
-  useUploadCvMutation,
-  usersApi,
-} from "../../../store/api/usersApi";
-import { clearAuth } from "../../../store/slices/authSlice";
+
+import { useGetMyCompaniesQuery } from "../../../store/api/companiesApi";
+
+import { useAddExperienceMutation, useAddSkillMutation, useDeleteAccountMutation, useDeleteExperienceMutation, useGetMeQuery, useRemoveSkillMutation, useUpdateExperienceMutation, useUpdateProfileMutation, useUploadAvatarMutation, useUploadCvMutation } from "../../../store/api/usersApi";
+
 import { Button, Card, CardSkeletons, EmptyState, Icon, List, ListRow, NavBar, PressableScale, Screen, Sheet, Skeleton, Text, TextField } from "../../components/ds";
 import { ExperienceCard } from "../../components/users/ExperienceCard";
 import { ExperienceForm, type ExperienceFormValues } from "../../components/users/ExperienceForm";
 import { SettingsLinkRow, SettingsToggleRow } from "../../components/users/SettingsRow";
 import { AddSkillChip, SkillChip } from "../../components/users/SkillChip";
 import { confirmAction } from "../../lib/confirm";
+import { resetSession } from "../../lib/resetSession";
 import { useAppColorScheme } from "../../theme/scheme";
 import { isEmployeePlanActive } from "../../lib/plan-status";
 import { useSkillLabel } from "../../lib/skills";
@@ -64,12 +50,26 @@ export default function ProfileScreen() {
     setNotificationsBusy(true);
     try {
       if (value) {
-        const token = await registerForPushNotificationsAsync();
-        if (!token) {
-          showErrorToast(t("profile.notifications.permissionDenied"));
+        const result = await registerForPushNotificationsAsync();
+        if (result.status === "unsupported") {
+          showErrorToast(t("profile.notifications.unsupported"));
           return;
         }
-        await updateProfile({ id: user!.id, expoPushToken: token }).unwrap();
+        if (result.status === "denied") {
+          // The system prompt only appears once; after a denial the settings are the only way back.
+          if (result.canAskAgain) {
+            showErrorToast(t("profile.notifications.permissionDenied"));
+          } else if (
+            await confirmAction(t("profile.notifications.openSettingsTitle"), t("profile.notifications.openSettingsMessage"), {
+              confirm: t("profile.notifications.openSettings"),
+              cancel: t("profile.cancel"),
+            })
+          ) {
+            await Linking.openSettings();
+          }
+          return;
+        }
+        await updateProfile({ id: user!.id, expoPushToken: result.token }).unwrap();
       } else {
         await updateProfile({ id: user!.id, expoPushToken: null }).unwrap();
       }
@@ -98,14 +98,7 @@ export default function ProfileScreen() {
       // but the device still holds locally-stored tokens — clear those too,
       // same as doSignOut(), or useSession() will keep reporting "authenticated".
       await SuperTokens.signOut();
-      dispatch(clearAuth());
-      dispatch(usersApi.util.resetApiState());
-      dispatch(applicationsApi.util.resetApiState());
-      dispatch(savedJobsApi.util.resetApiState());
-      dispatch(companiesApi.util.resetApiState());
-      dispatch(notificationsApi.util.resetApiState());
-      dispatch(billingApi.util.resetApiState());
-      dispatch(plansApi.util.resetApiState());
+      resetSession(dispatch);
       router.replace("/");
     } catch {
       // Most likely cause: an employer still owns a company (backend 409) —
@@ -182,15 +175,17 @@ export default function ProfileScreen() {
     // SuperTokens.signOut() invalidates the session server-side AND
     // clears the device's locally-stored tokens — a plain fetch to
     // /auth/signout would leave stale tokens on the device.
+    // The push token belongs to this phone, not to the account: leave it behind and the next person who signs in
+    // here would receive the previous account's notifications. Best effort; signing out must not fail over it.
+    if (user?.expoPushToken) {
+      try {
+        await updateProfile({ id: user.id, expoPushToken: null }).unwrap();
+      } catch {
+        /* offline or already invalid: carry on */
+      }
+    }
     await SuperTokens.signOut();
-    dispatch(clearAuth());
-    dispatch(usersApi.util.resetApiState());
-    dispatch(applicationsApi.util.resetApiState());
-    dispatch(savedJobsApi.util.resetApiState());
-    dispatch(companiesApi.util.resetApiState());
-    dispatch(notificationsApi.util.resetApiState());
-    dispatch(billingApi.util.resetApiState());
-      dispatch(plansApi.util.resetApiState());
+    resetSession(dispatch);
     router.replace("/");
   }
 
@@ -405,14 +400,14 @@ export default function ProfileScreen() {
                         <Icon icon={FileText} size={20} color={tokens.accent} />
                       </View>
                     }
-                    title={user.cvUrl ? (user.cvUrl.split("/").pop() ?? "CV") : "No CV uploaded"}
-                    subtitle="PDF document"
+                    title={user.cvUrl ? (user.cvUrl.split("/").pop() ?? "CV") : t("profile.noCv")}
+                    subtitle={t("profile.pdfDocument")}
                     accessory={
                       <Button
                         size="sm"
                         variant="secondary"
                         icon={Upload}
-                        title="Upload"
+                        title={t("common.upload")}
                         loading={cvUploading}
                         onPress={handleUploadCv}
                       />
@@ -542,11 +537,11 @@ export default function ProfileScreen() {
           setSkillSheetOpen(false);
           setNewSkill("");
         }}
-        title="Add skill"
+        title={t("profile.addSkill")}
         footer={
           <Button
             block
-            title="Add"
+            title={t("common.add")}
             disabled={!newSkill.trim()}
             onPress={async () => {
               if (await handleAddSkill()) setSkillSheetOpen(false);

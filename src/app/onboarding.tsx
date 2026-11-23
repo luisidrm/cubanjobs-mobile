@@ -1,7 +1,7 @@
 import * as DocumentPicker from "expo-document-picker";
 import { useRouter } from "expo-router";
 import { Building2, Check, CircleCheck, FileCheck2, FileText, MailCheck, MailWarning, Plus, Search, Upload, Wrench } from "lucide-react-native";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useCreateCompanyMutation } from "../../store/api/companiesApi";
@@ -58,7 +58,7 @@ export default function OnboardingScreen() {
   const { data: me, isLoading: meLoading } = useGetMeQuery();
   const isEmployer = me?.role === "employer";
 
-  const [step, setStep] = useState<Step>("welcome");
+  const [chosenStep, setStep] = useState<Step>("welcome");
   const [finishing, setFinishing] = useState(false);
   const [completeOnboarding] = useCompleteOnboardingMutation();
 
@@ -138,11 +138,8 @@ export default function OnboardingScreen() {
   const [checking, setChecking] = useState(false);
   const [nameError, setNameError] = useState(false);
 
-  useEffect(() => {
-    if (step === "verify" && verification?.isVerified) {
-      setStep("company");
-    }
-  }, [step, verification?.isVerified]);
+  // Once the email is verified the verify step has nothing left to do, so move past it.
+  const step: Step = chosenStep === "verify" && verification?.isVerified ? "company" : chosenStep;
 
   async function handleResend() {
     try {

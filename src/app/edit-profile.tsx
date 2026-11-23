@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useGetMeQuery, useUpdateProfileMutation } from "../../store/api/usersApi";
@@ -23,15 +23,16 @@ export default function EditProfileScreen() {
   const [phone, setPhone] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
 
-  useEffect(() => {
-    if (!user) return;
+  const [seededFrom, setSeededFrom] = useState<typeof user>(undefined);
+  if (user && user !== seededFrom) {
+    setSeededFrom(user);
     setFirstName(user.firstName ?? "");
     setLastName(user.lastName ?? "");
     setBio(user.bio ?? "");
     setLocation(user.location ?? "");
     setPhone(user.phone ?? "");
     setLinkedinUrl(user.linkedinUrl ?? "");
-  }, [user]);
+  }
 
   async function handleSave() {
     if (!user) return;

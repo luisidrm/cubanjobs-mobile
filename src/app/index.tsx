@@ -22,7 +22,6 @@ import {
 import { JobCard } from "../components/Jobs/JobCard";
 import { useSession } from "../lib/session";
 import { homeFor } from "../lib/home";
-import { useTokens } from "../theme/use-tokens";
 
 /**
  * First screen for signed-out users ("Browse-first"): real jobs before sign-up.
@@ -30,7 +29,6 @@ import { useTokens } from "../theme/use-tokens";
  */
 export default function WelcomeScreen() {
   const { t, i18n } = useTranslation();
-  const p = useTokens();
   const router = useRouter();
   const { status } = useSession();
   const [query, setQuery] = useState("");
@@ -107,7 +105,7 @@ export default function WelcomeScreen() {
         }
       />
 
-      <View pointerEvents="box-none" style={{ position: "absolute", left: 0, right: 0, bottom: 0, top: 0 }}>
+      <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, top: 0, pointerEvents: "box-none" }}>
         <GlassActionBar inset={16}>
           <View style={{ gap: 12, paddingTop: 6, paddingHorizontal: 4 }}>
             <Text weight="medium" style={{ fontSize: 15, lineHeight: 21, textAlign: "center" }}>

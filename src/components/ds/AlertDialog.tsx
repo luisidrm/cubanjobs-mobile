@@ -67,7 +67,8 @@ export function AlertDialog({ open, title, message, actions = [{ label: "OK" }],
             <View style={{ flexDirection: stacked ? "column" : "row", gap: 8, marginTop: 18 }}>
               {actions.map((a, i) => {
                 const bg = a.style === "destructive" ? p.danger : a.style === "cancel" ? p.fill2 : p.accent;
-                const fg = a.style === "cancel" ? p.text1 : "#FFFFFF";
+                // accent flips to a light teal in dark mode, so its label has to follow onAccent; danger stays a mid red
+                const fg = a.style === "cancel" ? p.text1 : a.style === "destructive" ? "#FFFFFF" : p.onAccent;
                 return (
                   <PressableScale
                     key={i}

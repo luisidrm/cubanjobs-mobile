@@ -1,4 +1,5 @@
 import { Pencil, Trash2 } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import type { WorkExperience } from "../../types/user";
 import { Card, IconButton, Text } from "../ds";
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function ExperienceCard({ experience, onEdit, onDelete }: Props) {
+  const { t } = useTranslation();
   return (
     <Card variant="grouped" padding={14} radius={16} style={{ marginBottom: 10 }}>
       <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
@@ -26,8 +28,8 @@ export function ExperienceCard({ experience, onEdit, onDelete }: Props) {
             </Text>
           ) : null}
         </View>
-        <IconButton icon={Pencil} label="Edit" variant="plain" size={36} onPress={onEdit} />
-        <IconButton icon={Trash2} label="Delete" variant="plain" size={36} onPress={onDelete} />
+        <IconButton icon={Pencil} label={t("common.edit")} variant="plain" size={36} onPress={onEdit} />
+        <IconButton icon={Trash2} label={t("common.delete")} variant="plain" size={36} onPress={onDelete} />
       </View>
     </Card>
   );

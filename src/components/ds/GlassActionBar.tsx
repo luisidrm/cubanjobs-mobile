@@ -7,7 +7,7 @@ import { GlassView } from "./GlassView";
 export function GlassActionBar({ children, inset = 16 }: { children: ReactNode; inset?: number }) {
   const insets = useSafeAreaInsets();
   return (
-    <View pointerEvents="box-none" style={{ position: "absolute", left: inset, right: inset, bottom: Math.max(28, insets.bottom + 8) }}>
+    <View style={{ position: "absolute", left: inset, right: inset, bottom: Math.max(28, insets.bottom + 8), pointerEvents: "box-none" }}>
       <GlassView strength="strong" intensity={80} radius={36} style={{ padding: 8 }}>
         {children}
       </GlassView>

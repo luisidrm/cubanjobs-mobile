@@ -67,12 +67,12 @@ function AccountSheet({ account, onClose }: { account: AccountPlanState | null; 
       account?.kind === "user"
         ? [
             { value: "free", label: t("adminPay.accounts.free") },
-            { value: "paid", label: "Paid" },
+            { value: "paid", label: t("adminPay.metrics.paid") },
           ]
         : [
             { value: "free", label: t("adminPay.accounts.free") },
-            { value: "basic", label: "Basic" },
-            { value: "pro", label: "Pro" },
+            { value: "basic", label: t("adminPay.metrics.basic") },
+            { value: "pro", label: t("adminPay.metrics.pro") },
           ],
     [account?.kind, t],
   );
@@ -193,7 +193,7 @@ export function AccountsPanel() {
           autoCapitalize="none"
           returnKeyType="search"
         />
-        <IconButton icon={Search} label="Search" variant="primary" size={48} onPress={() => setSubmitted(query.trim())} />
+        <IconButton icon={Search} label={t("common.search")} variant="primary" size={48} onPress={() => setSubmitted(query.trim())} />
       </View>
 
       {!searching ? (

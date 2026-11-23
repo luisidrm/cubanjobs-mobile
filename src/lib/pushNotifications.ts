@@ -12,12 +12,24 @@ Notifications.setNotificationHandler({
   }),
 });
 
-/** Requests permission and returns an Expo push token for this device, or
- * null if permission was denied or this isn't a real device (simulators/web
- * can't receive push). Also sets up the Android notification channel, which
- * Android 13+ requires before a token can be issued. */
-export async function registerForPushNotificationsAsync(): Promise<string | null> {
-  if (!Device.isDevice) return null;
+/** Why a push token could (or could not) be obtained, so the UI can say the right thing. */
+export type PushRegistration =
+  | { status: "granted"; token: string }
+  /** Simulators and the web cannot receive push at all: nothing the user can fix. */
+  | { status: "unsupported" }
+  /**
+   * `canAskAgain` false means the system will no longer show its prompt (the user denied it, or
+   * denied it twice on Android): the only way back is the phone's settings.
+   */
+  | { status: "denied"; canAskAgain: boolean };
+
+/**
+ * Requests permission and returns an Expo push token for this device. Also sets up the Android
+ * notification channel, which Android 13+ requires before the permission prompt can appear.
+ * Throws if the permission was granted but the token could not be issued (e.g. no network).
+ */
+export async function registerForPushNotificationsAsync(): Promise<PushRegistration> {
+  if (!Device.isDevice || Platform.OS === "web") return { status: "unsupported" };
 
   if (Platform.OS === "android") {
     await Notifications.setNotificationChannelAsync("default", {
@@ -26,15 +38,13 @@ export async function registerForPushNotificationsAsync(): Promise<string | null
     });
   }
 
-  const { status: existingStatus } = await Notifications.getPermissionsAsync();
-  let status = existingStatus;
-  if (status !== "granted") {
-    const result = await Notifications.requestPermissionsAsync();
-    status = result.status;
+  let permission = await Notifications.getPermissionsAsync();
+  if (permission.status !== "granted" && permission.canAskAgain) {
+    permission = await Notifications.requestPermissionsAsync();
   }
-  if (status !== "granted") return null;
+  if (permission.status !== "granted") return { status: "denied", canAskAgain: permission.canAskAgain };
 
   const projectId = Constants.expoConfig?.extra?.eas?.projectId;
   const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
-  return token;
+  return { status: "granted", token };
 }

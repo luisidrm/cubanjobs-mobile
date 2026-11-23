@@ -2,7 +2,7 @@ import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { Building2, Upload } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import {
@@ -45,15 +45,16 @@ export default function CompanyProfileScreen() {
   const [location, setLocation] = useState("");
   const [employeeCount, setEmployeeCount] = useState<EmployeeCount | undefined>(undefined);
 
-  useEffect(() => {
-    if (!company) return;
+  const [seededFrom, setSeededFrom] = useState<typeof company>(undefined);
+  if (company && company !== seededFrom) {
+    setSeededFrom(company);
     setName(company.name);
     setDescription(company.description ?? "");
     setWebsite(company.website ?? "");
     setIndustry(company.industry ?? "");
     setLocation(company.location ?? "");
     setEmployeeCount(company.employeeCount ?? undefined);
-  }, [company]);
+  }
 
   const saving = creating || updating;
 

@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
 import { Bell, BellOff, WifiOff } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, FlatList, View } from "react-native";
+import { FlatList, View } from "react-native";
 import {
   useGetNotificationsQuery,
   useMarkAllNotificationsReadMutation,

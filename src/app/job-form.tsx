@@ -2,7 +2,7 @@ import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ImagePlus, Trash2 } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useGetMyCompaniesQuery } from "../../store/api/companiesApi";
@@ -25,12 +25,7 @@ import { goBack } from "../lib/navigation";
 
 const JOB_TYPES: JobType[] = ["full_time", "part_time", "contract", "freelance", "internship"];
 const CURRENCIES: Currency[] = ["CUP", "MLC", "USD"];
-const STATUSES: { value: JobStatus; label: string }[] = [
-  { value: "draft", label: "Draft" },
-  { value: "active", label: "Active" },
-  { value: "closed", label: "Closed" },
-  { value: "expired", label: "Expired" },
-];
+const STATUS_VALUES: JobStatus[] = ["draft", "active", "closed", "expired"];
 
 function FieldLabel({ children }: { children: string }) {
   return (
@@ -107,8 +102,9 @@ export default function JobFormScreen() {
     }
   }
 
-  useEffect(() => {
-    if (!existingJob) return;
+  const [seededFrom, setSeededFrom] = useState<typeof existingJob>(undefined);
+  if (existingJob && existingJob !== seededFrom) {
+    setSeededFrom(existingJob);
     setTitle(existingJob.title);
     setDescription(existingJob.description);
     setSalaryMin(existingJob.salaryMin != null ? String(existingJob.salaryMin) : "");
@@ -118,7 +114,7 @@ export default function JobFormScreen() {
     setJobType(existingJob.jobType ?? undefined);
     setIsRemote(existingJob.isRemote);
     setStatus(existingJob.status);
-  }, [existingJob]);
+  }
 
   const saving = creating || updating;
 
@@ -270,7 +266,7 @@ export default function JobFormScreen() {
 
             <View>
               <FieldLabel>{t("jobForm.status")}</FieldLabel>
-              <SegmentedControl<JobStatus> options={STATUSES} value={status} onChange={setStatus} size="sm" />
+              <SegmentedControl<JobStatus> options={STATUS_VALUES.map((value) => ({ value, label: t(`jobStatus.${value}`) }))} value={status} onChange={setStatus} size="sm" />
             </View>
 
           </ScrollView>

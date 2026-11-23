@@ -188,7 +188,11 @@
       "title": "Notifications",
       "subtitle": "Job alerts and updates",
       "permissionDenied": "Notification permission was denied. You can enable it in your device settings.",
-      "error": "Couldn't update your notification settings. Please try again."
+      "error": "Couldn't update your notification settings. Please try again.",
+      "unsupported": "Push notifications only work on a physical phone.",
+      "openSettingsTitle": "Notifications are turned off",
+      "openSettingsMessage": "Turn them on for Brújula in your phone's settings to get updates about your applications.",
+      "openSettings": "Open settings"
     },
     "language": "Language",
     "privacyPolicy": {
@@ -203,7 +207,10 @@
     "darkMode": {
       "title": "Dark mode",
       "subtitle": "Easier on the eyes at night"
-    }
+    },
+    "addSkill": "Add skill",
+    "pdfDocument": "PDF document",
+    "noCv": "No CV uploaded"
   },
   "companyView": {
     "title": "Company",
@@ -464,7 +471,12 @@
   },
   "common": {
     "back": "Back",
-    "search": "Search"
+    "search": "Search",
+    "edit": "Edit",
+    "add": "Add",
+    "upload": "Upload",
+    "delete": "Delete",
+    "cantOpenLink": "Couldn't open the link."
   },
   "plans": {
     "title": "My plan",
@@ -775,5 +787,9 @@
       "notFound": "This post isn't available.",
       "by": "By {{name}}"
     }
+  },
+  "job": {
+    "save": "Save",
+    "unsave": "Unsave"
   }
 }

@@ -45,9 +45,9 @@ export function Chip({ label, variant = "selectable", selected, onPress, onRemov
         </Text>
         <Pressable
           onPress={onRemove}
-          hitSlop={8}
+          hitSlop={10}
           accessibilityRole="button"
-          accessibilityLabel={removeLabel ?? `Remove ${label}`}
+          accessibilityLabel={removeLabel ?? label}
           style={{ width: 24, height: 24, alignItems: "center", justifyContent: "center" }}
         >
           <Icon icon={X} size={15} color={p.text3} />

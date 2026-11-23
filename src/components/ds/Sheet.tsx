@@ -1,6 +1,6 @@
 import { X } from "lucide-react-native";
 import { useEffect, useState, type ReactNode } from "react";
-import { Modal, Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
+import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { radius, shadows } from "../../theme/tokens";
@@ -48,7 +48,7 @@ export function Sheet({ open, onClose, title, detent = "medium", footer, closeLa
   const maxH = detent === "large" ? height - insets.top - 24 : height * 0.62;
   return (
     <Modal transparent visible animationType="none" onRequestClose={onClose} statusBarTranslucent>
-      <View style={{ flex: 1, justifyContent: "flex-end" }}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, justifyContent: "flex-end" }}>
         <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: p.scrim }, scrim]}>
           <Pressable accessibilityLabel={closeLabel} style={StyleSheet.absoluteFill} onPress={onClose} />
         </Animated.View>
@@ -69,7 +69,7 @@ export function Sheet({ open, onClose, title, detent = "medium", footer, closeLa
             {footer ? <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>{footer}</View> : null}
           </GlassView>
         </Animated.View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

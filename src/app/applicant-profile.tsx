@@ -3,11 +3,12 @@ import { useLocalSearchParams } from "expo-router";
 import { Link2, MapPin, MessageCircle, WifiOff } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { useSkillLabel } from "../lib/skills";
-import { ActivityIndicator, Linking, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { useGetPublicProfileQuery } from "../../store/api/usersApi";
-import { Button, Card, Icon, List, ListRow, NavBar, Screen, Text, CardSkeletons, EmptyState } from "../components/ds";
+import { Card, Icon, List, ListRow, NavBar, Screen, Text, CardSkeletons, EmptyState } from "../components/ds";
 import { SkillChip } from "../components/users/SkillChip";
 import { useTokens } from "../theme/use-tokens";
+import { openExternal } from "../lib/openExternal";
 
 export default function ApplicantProfileScreen() {
   const { t } = useTranslation();
@@ -87,7 +88,7 @@ export default function ApplicantProfileScreen() {
                   iconBg="#0A66C2"
                   title={t("applicantProfile.viewLinkedin")}
                   accessory="chevron"
-                  onPress={() => Linking.openURL(profile.linkedinUrl as string)}
+                  onPress={() => openExternal(profile.linkedinUrl as string, t("common.cantOpenLink"))}
                 />
               ) : null}
               {profile.phone ? (
@@ -96,7 +97,7 @@ export default function ApplicantProfileScreen() {
                   iconBg="#25D366"
                   title={t("jobApplicants.contactWhatsapp")}
                   accessory="chevron"
-                  onPress={() => Linking.openURL(`https://wa.me/${(profile.phone as string).replace(/\D/g, "")}`)}
+                  onPress={() => openExternal(`https://wa.me/${(profile.phone as string).replace(/\D/g, "")}`, t("common.cantOpenLink"))}
                 />
               ) : null}
             </List>

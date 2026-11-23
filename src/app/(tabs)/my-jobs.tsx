@@ -5,22 +5,7 @@ import { useTranslation } from "react-i18next";
 import { FlatList, View } from "react-native";
 import { useGetMyCompaniesQuery } from "../../../store/api/companiesApi";
 import { useGetJobsByCompanyQuery } from "../../../store/api/jobsApi";
-import {
-  AlertDialog,
-  Badge,
-  Button,
-  Card,
-  CardSkeletons,
-  EmptyState,
-  Icon,
-  IconButton,
-  NavBar,
-  PressableScale,
-  Screen,
-  Text,
-  VerifyBanner,
-  type BadgeTone,
-} from "../../components/ds";
+import { AlertDialog, Badge, Card, CardSkeletons, EmptyState, Icon, IconButton, NavBar, PressableScale, Screen, Text, VerifyBanner, type BadgeTone } from "../../components/ds";
 import { PlanBanner } from "../../components/plans/PlanBanner";
 import { JoinCompany } from "../../components/team/JoinCompany";
 import { NotificationBell } from "../../components/notifications/NotificationBell";
@@ -76,7 +61,7 @@ function MyJobRow({ job, onPress, onEdit }: { job: EmployerJob; onPress: () => v
         </View>
         <PressableScale
           accessibilityRole="button"
-          accessibilityLabel="Edit"
+          accessibilityLabel={t("common.edit")}
           onPress={onEdit}
           style={{ minHeight: 44, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 6 }}
         >

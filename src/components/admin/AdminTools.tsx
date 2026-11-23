@@ -16,11 +16,12 @@ import { getErrorMessage } from "../../lib/errors";
 import { showErrorToast, showSuccessToast } from "../../lib/toast";
 import { useTokens } from "../../theme/use-tokens";
 
-const ROLE_OPTIONS: { value: AdminUserRole; label: string }[] = [
-  { value: "employee", label: "Employee" },
-  { value: "employer", label: "Employer" },
-  { value: "admin", label: "Admin" },
-];
+const ROLE_LABEL_KEYS: Record<AdminUserRole, string> = {
+  employee: "adminPay.accounts.employee",
+  employer: "adminPay.accounts.employer",
+  admin: "tabs.admin",
+};
+const ROLE_VALUES = Object.keys(ROLE_LABEL_KEYS) as AdminUserRole[];
 
 export function CompanySection() {
   const { t } = useTranslation();
@@ -55,7 +56,7 @@ export function CompanySection() {
           autoCapitalize="none"
           returnKeyType="search"
         />
-        <IconButton icon={Search} label="Search" variant="primary" size={48} onPress={() => setSubmittedQuery(query.trim())} />
+        <IconButton icon={Search} label={t("common.search")} variant="primary" size={48} onPress={() => setSubmittedQuery(query.trim())} />
       </View>
 
       {isFetching ? <ActivityIndicator color={p.accent} /> : null}
@@ -148,7 +149,7 @@ export function UserSection() {
           keyboardType="email-address"
           returnKeyType="search"
         />
-        <IconButton icon={Search} label="Search" variant="primary" size={48} onPress={handleSearch} />
+        <IconButton icon={Search} label={t("common.search")} variant="primary" size={48} onPress={handleSearch} />
       </View>
 
       {isFetching ? <ActivityIndicator color={p.accent} /> : null}
@@ -164,7 +165,7 @@ export function UserSection() {
                 </Text>
               </View>
               <SegmentedControl<AdminUserRole>
-                options={ROLE_OPTIONS}
+                options={ROLE_VALUES.map((value) => ({ value, label: t(ROLE_LABEL_KEYS[value]) }))}
                 value={lookup.localUser.role}
                 onChange={handleRoleChange}
               />

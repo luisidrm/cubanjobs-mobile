@@ -44,7 +44,7 @@ export const baseQuery: BaseQueryFn<
                 // Session is fully expired, force logout state
                 await SuperTokens.signOut();
             }
-        } catch (refreshError) {
+        } catch {
             // Throws on network/server failures; a dead session returns false
             // above. Don't sign the user out over a transient failure.
             return { error: { status: 'FETCH_ERROR', error: 'Could not refresh the session' } };

@@ -3,7 +3,7 @@ import * as WebBrowser from "expo-web-browser";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2 } from "lucide-react-native";
-import { ActivityIndicator, Platform, ScrollView, View } from "react-native";
+import { Platform, ScrollView, View } from "react-native";
 import { useCreateCheckoutSessionMutation, useCreatePortalSessionMutation } from "../../store/api/billingApi";
 import { useGetMyCompaniesQuery } from "../../store/api/companiesApi";
 import { APP_SCHEME, STRIPE_ENABLED } from "../lib/config";

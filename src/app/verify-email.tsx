@@ -15,17 +15,14 @@ export default function VerifyEmailScreen() {
   const router = useRouter();
   const { token } = useLocalSearchParams<{ token: string }>();
 
-  const [state, setState] = useState<VerifyState>("verifying");
+  const [state, setState] = useState<VerifyState>(token ? "verifying" : "invalid");
   const [verifyEmail] = useVerifyEmailMutation();
   const [resend] = useResendVerificationEmailMutation();
   const { data: me } = useGetMeQuery();
   const homeRoute = homeFor(me?.role);
 
   useEffect(() => {
-    if (!token) {
-      setState("invalid");
-      return;
-    }
+    if (!token) return;
 
     verifyEmail({ token })
       .unwrap()

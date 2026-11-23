@@ -5,7 +5,7 @@ import * as ImagePicker from "expo-image-picker";
 import { Building2, Check, Copy, Hash, ImagePlus, Receipt, Sparkles, WifiOff, X } from "lucide-react-native";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView, View } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useGetMeQuery } from "../../store/api/usersApi";
 import { useGetMyCompaniesQuery } from "../../store/api/companiesApi";
 import {
@@ -161,6 +161,7 @@ export default function PlansScreen() {
     <Screen safeTop={false}>
       <NavBar back title={t("plans.title")} />
 
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
       <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: ACTION_BAR_CLEARANCE, gap: 24 }}
@@ -404,6 +405,7 @@ export default function PlansScreen() {
           ))}
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
 
       {plan && !needsCompany && !managedByCard ? (
         <GlassActionBar>

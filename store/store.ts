@@ -33,9 +33,17 @@ const rootReducer = combineReducers({
   // Add your standard UI slices here
 });
 
+// Expo renders the web pages once in Node (static output), where AsyncStorage's web build
+// throws "window is not defined". Persisting only makes sense on a device or in a browser.
+const noopStorage = {
+  getItem: async (_key: string) => null,
+  setItem: async (_key: string, value: string) => value,
+  removeItem: async (_key: string) => {},
+};
+
 const persistConfig = {
   key: 'root',
-  storage: AsyncStorage,
+  storage: typeof window === 'undefined' ? noopStorage : AsyncStorage,
   whitelist: ["auth"], // Specify slice names you want to save permanently. DO NOT persist RTK Query caches.
 };
 

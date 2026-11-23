@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { FlatList, ScrollView, View } from "react-native";
 import { useGetMyCompaniesQuery } from "../../../store/api/companiesApi";
 import { useGetWorkerSkillsQuery, useSearchWorkersQuery } from "../../../store/api/usersApi";
-import { Button, CardSkeletons, EmptyState, NavBar, Screen, TextField } from "../../components/ds";
+import { CardSkeletons, EmptyState, NavBar, Screen, TextField } from "../../components/ds";
 import { WorkerCard } from "../../components/Jobs/WorkerCard";
 import { FilterChip } from "../../components/tabs/FilterChip";
 import { hasCandidateSearchAccess } from "../../lib/plans";
