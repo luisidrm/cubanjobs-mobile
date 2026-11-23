@@ -102,7 +102,14 @@
     "resend": "Reenviar",
     "resent": "¡Enviado!"
   },
+  "share": {
+    "button": "Compartir",
+    "company": "{{company}} en Brújula: vacantes y perfil de la empresa",
+    "job": "{{title}} en {{company}}, en Brújula"
+  },
   "jobDetails": {
+    "contactWhatsapp": "Contactar por WhatsApp",
+    "whatsappMessage": "¡Hola! Vi la vacante \"{{title}}\" en Brújula y me interesa.",
     "title": "Detalles del empleo",
     "active": "Activo",
     "postedToday": "Publicado hoy",
@@ -306,6 +313,8 @@
     "create": "Crear empresa"
   },
   "jobForm": {
+    "whatsapp": "WhatsApp para candidatos (opcional)",
+    "whatsappHelp": "Los candidatos podrán escribirte directamente. Se muestra en la página de la vacante.",
     "createTitle": "Publicar empleo",
     "editTitle": "Editar empleo",
     "requiredFields": "El título y la descripción son obligatorios.",

@@ -21,6 +21,8 @@ export interface Job {
   viewCount: number;
   coverImageUrl: string | null;
   createdAt: string;
+  /** Only on the single-job response, not in lists. */
+  contactWhatsapp?: string | null;
   company: JobCompany;
 }
 
@@ -39,6 +41,7 @@ export interface EmployerJob {
   location: string | null;
   jobType: JobType | null;
   isRemote: boolean;
+  contactWhatsapp: string | null;
   status: JobStatus;
   expiresAt: string | null;
   viewCount: number;

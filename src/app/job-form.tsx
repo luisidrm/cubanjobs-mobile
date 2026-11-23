@@ -61,6 +61,7 @@ export default function JobFormScreen() {
   const [currency, setCurrency] = useState<Currency>("CUP");
   const [location, setLocation] = useState("");
   const [jobType, setJobType] = useState<JobType | undefined>(undefined);
+  const [contactWhatsapp, setContactWhatsapp] = useState("");
   const [isRemote, setIsRemote] = useState(false);
   const [status, setStatus] = useState<JobStatus>("draft");
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -112,6 +113,7 @@ export default function JobFormScreen() {
     setCurrency(existingJob.currency ?? "CUP");
     setLocation(existingJob.location ?? "");
     setJobType(existingJob.jobType ?? undefined);
+    setContactWhatsapp(existingJob.contactWhatsapp ?? "");
     setIsRemote(existingJob.isRemote);
     setStatus(existingJob.status);
   }
@@ -146,6 +148,8 @@ export default function JobFormScreen() {
       currency,
       location: location.trim() || undefined,
       jobType,
+      // null clears a number that was removed while editing.
+      contactWhatsapp: contactWhatsapp.trim() || null,
       isRemote,
       status,
     };
@@ -256,6 +260,16 @@ export default function JobFormScreen() {
             </View>
 
             <TextField label={t("jobForm.location")} value={location} onChangeText={setLocation} placeholder={t("jobForm.locationPlaceholder")} />
+
+            <TextField
+              label={t("jobForm.whatsapp")}
+              hint={t("jobForm.whatsappHelp")}
+              value={contactWhatsapp}
+              onChangeText={setContactWhatsapp}
+              keyboardType="phone-pad"
+              placeholder="+53 5555 5555"
+              maxLength={32}
+            />
 
             <List>
               <ListRow

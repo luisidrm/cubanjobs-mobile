@@ -20,6 +20,18 @@ function resolveApiUrl(): string {
 
 export const API_URL = resolveApiUrl();
 
+/**
+ * Public website address, used to build links when sharing a job. A build without
+ * one still shares the text, just without a link.
+ */
+function resolveWebUrl(): string | null {
+  const web = process.env.EXPO_PUBLIC_WEB_URL;
+  if (web && !web.includes("REPLACE_WITH")) return web.replace(/\/+$/, "");
+  return __DEV__ ? "http://localhost:3000" : null;
+}
+
+export const WEB_URL = resolveWebUrl();
+
 /** Deep-link scheme from app.json, used for return URLs. */
 export const APP_SCHEME = "brujula";
 

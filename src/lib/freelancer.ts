@@ -3,6 +3,7 @@ import { useGetMeQuery } from "../../store/api/usersApi";
 import type { FreelancerContact } from "../types/freelancer";
 import { isEmployeePlanActive } from "./plan-status";
 import { hasCandidateSearchAccess } from "./plans";
+import { whatsappChatUrl } from "./whatsapp";
 
 /**
  * Who may browse the freelancer board: paying employees, members of a paid
@@ -40,7 +41,7 @@ export function contactLinks(c: FreelancerContact): ContactLink[] {
   const out: ContactLink[] = [];
   if (c.contactPhone) out.push({ key: "phone", value: c.contactPhone, url: `tel:${c.contactPhone.replace(/[^\d+]/g, "")}` });
   if (c.contactWhatsapp) {
-    out.push({ key: "whatsapp", value: c.contactWhatsapp, url: `https://wa.me/${c.contactWhatsapp.replace(/\D/g, "")}` });
+    out.push({ key: "whatsapp", value: c.contactWhatsapp, url: whatsappChatUrl(c.contactWhatsapp) });
   }
   if (c.contactEmail) out.push({ key: "email", value: c.contactEmail, url: `mailto:${c.contactEmail}` });
   if (c.contactTelegram) {

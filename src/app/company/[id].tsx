@@ -1,12 +1,13 @@
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Building2, Link2, MapPin, WifiOff } from "lucide-react-native";
+import { Building2, Link2, MapPin, Share2, WifiOff } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { useGetCompanyByIdQuery } from "../../../store/api/companiesApi";
 import { useSearchJobsQuery } from "../../../store/api/jobsApi";
 import { JobCard } from "../../components/Jobs/JobCard";
-import { Icon, List, ListRow, NavBar, Screen, Text, CardSkeletons, EmptyState } from "../../components/ds";
+import { CardSkeletons, EmptyState, Icon, IconButton, List, ListRow, NavBar, Screen, Text } from "../../components/ds";
+import { shareText } from "../../lib/share";
 import { useTokens } from "../../theme/use-tokens";
 import { openExternal } from "../../lib/openExternal";
 
@@ -20,7 +21,20 @@ export default function CompanyScreen() {
 
   return (
     <Screen safeTop={false}>
-      <NavBar back title={t("companyView.title")} />
+      <NavBar
+        back
+        title={t("companyView.title")}
+        trailing={
+          company ? (
+            <IconButton
+              icon={Share2}
+              label={t("share.button")}
+              variant="glass"
+              onPress={() => shareText(t("share.company", { company: company.name }), `/companies/${company.id}`)}
+            />
+          ) : undefined
+        }
+      />
 
       {isLoading ? (
         <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>

@@ -9,6 +9,7 @@ import { Card, Icon, List, ListRow, NavBar, Screen, Text, CardSkeletons, EmptySt
 import { SkillChip } from "../components/users/SkillChip";
 import { useTokens } from "../theme/use-tokens";
 import { openExternal } from "../lib/openExternal";
+import { whatsappChatUrl } from "../lib/whatsapp";
 
 export default function ApplicantProfileScreen() {
   const { t } = useTranslation();
@@ -97,7 +98,7 @@ export default function ApplicantProfileScreen() {
                   iconBg="#25D366"
                   title={t("jobApplicants.contactWhatsapp")}
                   accessory="chevron"
-                  onPress={() => openExternal(`https://wa.me/${(profile.phone as string).replace(/\D/g, "")}`, t("common.cantOpenLink"))}
+                  onPress={() => openExternal(whatsappChatUrl(profile.phone as string), t("common.cantOpenLink"))}
                 />
               ) : null}
             </List>

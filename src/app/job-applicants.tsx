@@ -15,6 +15,7 @@ import { FilterChip } from "../components/tabs/FilterChip";
 import { useTokens } from "../theme/use-tokens";
 import type { ApplicationWithApplicant, EmployerSettableStatus } from "../types/application";
 import { openExternal } from "../lib/openExternal";
+import { whatsappChatUrl } from "../lib/whatsapp";
 
 const SETTABLE_STATUSES: EmployerSettableStatus[] = ["pending", "reviewed", "accepted", "rejected"];
 
@@ -86,7 +87,7 @@ function ApplicantCard({ application }: { application: ApplicationWithApplicant 
             variant="tinted"
             icon={MessageCircle}
             title={t("jobApplicants.contactWhatsapp")}
-            onPress={() => openExternal(`https://wa.me/${whatsappDigits}`, t("common.cantOpenLink"))}
+            onPress={() => openExternal(whatsappChatUrl(whatsappDigits), t("common.cantOpenLink"))}
           />
         ) : null}
       </View>

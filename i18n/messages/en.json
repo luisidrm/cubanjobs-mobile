@@ -102,7 +102,14 @@
     "resend": "Resend",
     "resent": "Sent!"
   },
+  "share": {
+    "button": "Share",
+    "company": "{{company}} on Brújula: jobs and company profile",
+    "job": "{{title}} at {{company}}, on Brújula"
+  },
   "jobDetails": {
+    "contactWhatsapp": "Contact on WhatsApp",
+    "whatsappMessage": "Hi! I saw the job \"{{title}}\" on Brújula and I am interested.",
     "title": "Job Details",
     "active": "Active",
     "postedToday": "Posted today",
@@ -306,6 +313,8 @@
     "create": "Create company"
   },
   "jobForm": {
+    "whatsapp": "WhatsApp for applicants (optional)",
+    "whatsappHelp": "Applicants can message you directly. It is shown on the job page.",
     "createTitle": "Post a job",
     "editTitle": "Edit job",
     "requiredFields": "Title and description are required.",

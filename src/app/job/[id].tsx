@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import type { TFunction } from "i18next";
-import { Bookmark, BookmarkCheck, Check, ChevronRight, Clock, Globe, MapPin, Send, WifiOff } from "lucide-react-native";
+import { Bookmark, BookmarkCheck, Check, ChevronRight, Clock, Globe, MapPin, MessageCircle, Send, Share2, WifiOff } from "lucide-react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
@@ -26,7 +26,10 @@ import {
   Skeleton,
   Text,
 } from "../../components/ds";
+import { openExternal } from "../../lib/openExternal";
 import { isEmployeePlanActive } from "../../lib/plan-status";
+import { shareText } from "../../lib/share";
+import { whatsappChatUrl } from "../../lib/whatsapp";
 import { useSession } from "../../lib/session";
 import { showErrorToast, showSuccessToast } from "../../lib/toast";
 import { useTokens } from "../../theme/use-tokens";
@@ -99,12 +102,22 @@ export default function JobDetailsScreen() {
         back
         title={t("jobDetails.title")}
         trailing={
-          <IconButton
-            icon={isSaved ? BookmarkCheck : Bookmark}
-            label={isSaved ? t("job.unsave", { defaultValue: "Unsave" }) : t("job.save", { defaultValue: "Save" })}
-            variant={isSaved ? "primary" : "glass"}
-            onPress={handleSave}
-          />
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            {job ? (
+              <IconButton
+                icon={Share2}
+                label={t("share.button")}
+                variant="glass"
+                onPress={() => shareText(t("share.job", { title: job.title, company: job.company.name }), `/jobs/${job.id}`)}
+              />
+            ) : null}
+            <IconButton
+              icon={isSaved ? BookmarkCheck : Bookmark}
+              label={isSaved ? t("job.unsave", { defaultValue: "Unsave" }) : t("job.save", { defaultValue: "Save" })}
+              variant={isSaved ? "primary" : "glass"}
+              onPress={handleSave}
+            />
+          </View>
         }
       />
 
@@ -214,6 +227,22 @@ export default function JobDetailsScreen() {
           </ScrollView>
 
           <GlassActionBar>
+            {job.contactWhatsapp ? (
+              <Button
+                block
+                size="lg"
+                variant="tinted"
+                icon={MessageCircle}
+                title={t("jobDetails.contactWhatsapp")}
+                onPress={() =>
+                  openExternal(
+                    whatsappChatUrl(job.contactWhatsapp as string, t("jobDetails.whatsappMessage", { title: job.title })),
+                    t("common.cantOpenLink"),
+                  )
+                }
+                style={{ marginBottom: 8 }}
+              />
+            ) : null}
             <Button
               block
               size="lg"
