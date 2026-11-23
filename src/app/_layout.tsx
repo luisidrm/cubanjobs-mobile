@@ -22,9 +22,13 @@ import { persistor, store } from '../../store/store';
 import { AuthGate } from '../components/auth-gate';
 import { toastConfig } from '../components/AppToast';
 import { API_URL } from '../lib/config';
+import { initMonitoring } from '../lib/monitoring';
 import { loadThemePreference } from '../lib/theme-preference';
 import { useAppColorScheme } from '../theme/scheme';
 
+
+// First, so crashes during the rest of startup are reported too.
+initMonitoring();
 
 SplashScreen.preventAutoHideAsync();
 
