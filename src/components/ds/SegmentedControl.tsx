@@ -18,6 +18,12 @@ export interface SegmentedControlProps<T extends string> {
   size?: "sm" | "md";
   /** Over-photo variant. */
   glass?: boolean;
+  /**
+   * Fixed width of each segment. Use it where the control sits in a row with no width to fill
+   * (a header): without it the segments are flex: 1 and have nothing to size against, so the
+   * control can stretch past the screen edge. Left unset, the control fills its parent.
+   */
+  segmentWidth?: number;
 }
 
 /** Pill switch between 2-4 mutually exclusive views, with a sliding raised thumb. */
@@ -27,6 +33,7 @@ export function SegmentedControl<T extends string>({
   onChange,
   size = "md",
   glass,
+  segmentWidth,
 }: SegmentedControlProps<T>) {
   const p = useTokens();
   const [width, setWidth] = useState(0);
@@ -46,6 +53,8 @@ export function SegmentedControl<T extends string>({
         padding: 3,
         borderRadius: radius.pill,
         backgroundColor: glass ? undefined : p.fill1,
+        // Explicit size (track = segments + padding) so it can never grow past its content.
+        ...(segmentWidth ? { width: segmentWidth * options.length + 6, flexShrink: 0 } : null),
       }}
     >
       {segW > 0 && found >= 0 ? (
@@ -73,7 +82,13 @@ export function SegmentedControl<T extends string>({
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
             onPress={() => onChange(o.value)}
-            style={{ flex: 1, height: h - 6, alignItems: "center", justifyContent: "center", paddingHorizontal: 12 }}
+            style={{
+              ...(segmentWidth ? { width: segmentWidth } : { flex: 1 }),
+              height: h - 6,
+              alignItems: "center",
+              justifyContent: "center",
+              paddingHorizontal: segmentWidth ? 0 : 12,
+            }}
           >
             <Text
               weight={on ? "semibold" : "medium"}

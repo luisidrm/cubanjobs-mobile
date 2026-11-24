@@ -60,6 +60,7 @@ export default function WelcomeScreen() {
         <BrandLogo size={22} />
         <SegmentedControl<"es" | "en">
           size="sm"
+          segmentWidth={48}
           value={lang}
           onChange={(l) => void setLanguage(l)}
           options={[
