@@ -557,7 +557,8 @@
       "payments": "Payments",
       "accounts": "Accounts",
       "plans": "Plans",
-      "tools": "Tools"
+      "tools": "Tools",
+      "reports": "Reports"
     },
     "filter": {
       "pending": "Pending",
@@ -801,5 +802,50 @@
   "job": {
     "save": "Save",
     "unsave": "Unsave"
+  },
+  "report": {
+    "button": "Report",
+    "title": "Report this",
+    "description": "Tell us what is wrong. Our team will review it.",
+    "close": "Close",
+    "reasons": {
+      "scam": "Looks like a scam",
+      "upfront_payment": "Asks for money up front",
+      "inappropriate": "Inappropriate content",
+      "spam": "Spam or advertising",
+      "fake": "Fake or misleading listing",
+      "other": "Something else"
+    },
+    "noteLabel": "Details (optional)",
+    "notePlaceholder": "What did you see?",
+    "submit": "Send report",
+    "sent": "Thanks, we got your report.",
+    "alreadySent": "You already reported this. We are reviewing it.",
+    "own": "You cannot report your own content.",
+    "error": "We could not send the report. Try again."
+  },
+  "adminReports": {
+    "title": "Reports",
+    "filter": {
+      "open": "Open",
+      "actioned": "Handled",
+      "dismissed": "Dismissed"
+    },
+    "empty": "No reports in this list.",
+    "emptyOpen": "No open reports.",
+    "target": {
+      "job": "Job",
+      "freelancer_post": "Freelancer post",
+      "company": "Company"
+    },
+    "reportedBy": "Reported by {{email}}",
+    "dismiss": "Dismiss",
+    "handled": "Mark as handled",
+    "closeJob": "Close job",
+    "deletePost": "Delete post",
+    "confirmTakedown": "Confirm: remove now",
+    "resolved": "Report resolved",
+    "resolveError": "Could not resolve the report.",
+    "loadError": "We could not load the reports."
   }
 }

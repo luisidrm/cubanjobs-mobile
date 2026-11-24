@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 import { useGetFreelancerPostQuery } from "../../../store/api/freelancerApi";
 import { Button, EmptyState, IconButton, NavBar, Screen, Text } from "../../components/ds";
+import { ReportButton } from "../../components/ReportButton";
 import { type ContactLink, authorName, contactLinks } from "../../lib/freelancer";
 import { openExternal } from "../../lib/openExternal";
 import { useTokens } from "../../theme/use-tokens";
@@ -39,6 +40,8 @@ export default function FreelancerPostScreen() {
               variant="fill"
               onPress={() => router.push({ pathname: "/freelancer-form", params: { id: post.id } })}
             />
+          ) : post ? (
+            <ReportButton targetType="freelancer_post" targetId={post.id} variant="fill" />
           ) : undefined
         }
       />

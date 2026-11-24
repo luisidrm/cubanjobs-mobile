@@ -28,6 +28,7 @@ import {
 } from "../../components/ds";
 import { openExternal } from "../../lib/openExternal";
 import { isEmployeePlanActive } from "../../lib/plan-status";
+import { ReportButton } from "../../components/ReportButton";
 import { shareText } from "../../lib/share";
 import { whatsappChatUrl } from "../../lib/whatsapp";
 import { useSession } from "../../lib/session";
@@ -111,6 +112,7 @@ export default function JobDetailsScreen() {
                 onPress={() => shareText(t("share.job", { title: job.title, company: job.company.name }), `/jobs/${job.id}`)}
               />
             ) : null}
+            {job ? <ReportButton targetType="job" targetId={job.id} /> : null}
             <IconButton
               icon={isSaved ? BookmarkCheck : Bookmark}
               label={isSaved ? t("job.unsave", { defaultValue: "Unsave" }) : t("job.save", { defaultValue: "Save" })}

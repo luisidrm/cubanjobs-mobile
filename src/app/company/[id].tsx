@@ -7,6 +7,7 @@ import { useGetCompanyByIdQuery } from "../../../store/api/companiesApi";
 import { useSearchJobsQuery } from "../../../store/api/jobsApi";
 import { JobCard } from "../../components/Jobs/JobCard";
 import { CardSkeletons, EmptyState, Icon, IconButton, List, ListRow, NavBar, Screen, Text } from "../../components/ds";
+import { ReportButton } from "../../components/ReportButton";
 import { shareText } from "../../lib/share";
 import { useTokens } from "../../theme/use-tokens";
 import { openExternal } from "../../lib/openExternal";
@@ -26,12 +27,15 @@ export default function CompanyScreen() {
         title={t("companyView.title")}
         trailing={
           company ? (
-            <IconButton
-              icon={Share2}
-              label={t("share.button")}
-              variant="glass"
-              onPress={() => shareText(t("share.company", { company: company.name }), `/companies/${company.id}`)}
-            />
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <IconButton
+                icon={Share2}
+                label={t("share.button")}
+                variant="glass"
+                onPress={() => shareText(t("share.company", { company: company.name }), `/companies/${company.id}`)}
+              />
+              <ReportButton targetType="company" targetId={company.id} />
+            </View>
           ) : undefined
         }
       />
