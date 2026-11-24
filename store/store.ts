@@ -12,6 +12,7 @@ import { freelancerApi } from './api/freelancerApi';
 import { jobsApi } from './api/jobsApi';
 import { notificationsApi } from './api/notificationsApi';
 import { plansApi } from './api/plansApi';
+import { reportsApi } from './api/reportsApi';
 import { savedJobsApi } from './api/savedJobsApi';
 import { usersApi } from './api/usersApi';
 import authReducer from './slices/authSlice';
@@ -30,6 +31,7 @@ const rootReducer = combineReducers({
   [adminApi.reducerPath]: adminApi.reducer,
   [adminPaymentsApi.reducerPath]: adminPaymentsApi.reducer,
   [freelancerApi.reducerPath]: freelancerApi.reducer,
+  [reportsApi.reducerPath]: reportsApi.reducer,
   // Add your standard UI slices here
 });
 
@@ -68,6 +70,7 @@ export const store = configureStore({
       plansApi.middleware,
       adminApi.middleware,
       adminPaymentsApi.middleware,
+      reportsApi.middleware,
       freelancerApi.middleware),
 });
 

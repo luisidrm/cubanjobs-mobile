@@ -557,7 +557,8 @@
       "payments": "Pagos",
       "accounts": "Cuentas",
       "plans": "Planes",
-      "tools": "Herramientas"
+      "tools": "Herramientas",
+      "reports": "Reportes"
     },
     "filter": {
       "pending": "Pendientes",
@@ -801,5 +802,50 @@
   "job": {
     "save": "Guardar",
     "unsave": "Quitar de guardados"
+  },
+  "report": {
+    "button": "Reportar",
+    "title": "Reportar esto",
+    "description": "Cuéntanos qué pasa. Nuestro equipo lo revisará.",
+    "close": "Cerrar",
+    "reasons": {
+      "scam": "Parece una estafa",
+      "upfront_payment": "Piden dinero por adelantado",
+      "inappropriate": "Contenido inapropiado",
+      "spam": "Spam o publicidad",
+      "fake": "Anuncio falso o engañoso",
+      "other": "Otro motivo"
+    },
+    "noteLabel": "Detalles (opcional)",
+    "notePlaceholder": "¿Qué viste?",
+    "submit": "Enviar reporte",
+    "sent": "Gracias, recibimos tu reporte.",
+    "alreadySent": "Ya habías reportado esto. Lo estamos revisando.",
+    "own": "No puedes reportar tu propio contenido.",
+    "error": "No pudimos enviar el reporte. Inténtalo de nuevo."
+  },
+  "adminReports": {
+    "title": "Reportes",
+    "filter": {
+      "open": "Abiertos",
+      "actioned": "Atendidos",
+      "dismissed": "Descartados"
+    },
+    "empty": "No hay reportes en esta lista.",
+    "emptyOpen": "No hay reportes abiertos.",
+    "target": {
+      "job": "Vacante",
+      "freelancer_post": "Publicación de freelancer",
+      "company": "Empresa"
+    },
+    "reportedBy": "Reportado por {{email}}",
+    "dismiss": "Descartar",
+    "handled": "Marcar como atendido",
+    "closeJob": "Cerrar vacante",
+    "deletePost": "Eliminar publicación",
+    "confirmTakedown": "Confirmar: retirar ahora",
+    "resolved": "Reporte resuelto",
+    "resolveError": "No se pudo resolver el reporte.",
+    "loadError": "No pudimos cargar los reportes."
   }
 }

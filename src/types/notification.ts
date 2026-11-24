@@ -3,7 +3,9 @@ export type NotificationType =
   | "plan_expiring"
   | "plan_expired"
   | "payment_approved"
-  | "payment_rejected";
+  | "payment_rejected"
+  | "team_member_joined"
+  | "report_resolved";
 
 export interface Notification {
   id: string;
