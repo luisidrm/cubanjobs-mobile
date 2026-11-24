@@ -106,7 +106,7 @@ export default function WelcomeScreen() {
           />
         )}
         ListEmptyComponent={
-          isLoading ? null : isError ? (
+          isLoading ? undefined : isError ? (
             <EmptyState icon={WifiOff} tone="danger" message={t("explore.error")} actionLabel={t("jobDetails.retry")} onAction={() => refetch()} />
           ) : (
             <EmptyState icon={SearchX} message={t("explore.empty")} actionLabel={t("explore.clearFilters")} onAction={() => setQuery("")} />

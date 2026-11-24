@@ -112,7 +112,7 @@ export default function FreelancersScreen() {
           <PostCard post={item} onPress={() => router.push({ pathname: "/freelancer/[id]", params: { id: item.id } })} />
         )}
         ListEmptyComponent={
-          isLoading || accessLoading ? null : isError ? (
+          isLoading || accessLoading ? undefined : isError ? (
             <EmptyState icon={WifiOff} tone="danger" message={t("freelancers.error")} actionLabel={t("freelancers.retry")} onAction={() => refetch()} />
           ) : (
             <EmptyState icon={SearchX} message={query.trim() ? t("freelancers.emptySearch") : t("freelancers.empty")} />

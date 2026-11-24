@@ -34,6 +34,8 @@ export async function registerForPushNotificationsAsync(): Promise<PushRegistrat
   if (Platform.OS === "android") {
     await Notifications.setNotificationChannelAsync("default", {
       name: "default",
+      // expo-notifications 58 exports the enum through `export *`, which this lint rule cannot follow (TypeScript can).
+      // eslint-disable-next-line import/namespace
       importance: Notifications.AndroidImportance.MAX,
     });
   }

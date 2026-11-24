@@ -113,7 +113,7 @@ export default function ExploreWorkersScreen() {
           />
         )}
         ListEmptyComponent={
-          isLoading ? null : isError ? (
+          isLoading ? undefined : isError ? (
             <EmptyState icon={WifiOff} tone="danger" message={t("exploreWorkers.error")} actionLabel={t("jobDetails.retry")} onAction={() => refetch()} />
           ) : (
             <EmptyState icon={SearchX} message={t("exploreWorkers.empty")} actionLabel={t("explore.clearFilters")} onAction={() => { setQuery(""); setActiveSkills(new Set()); }} />

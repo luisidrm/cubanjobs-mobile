@@ -155,7 +155,7 @@ export default function MyJobsScreen() {
             />
           )}
           ListEmptyComponent={
-            jobsLoading ? null : isError ? (
+            jobsLoading ? undefined : isError ? (
               <EmptyState icon={WifiOff} tone="danger" message={t("explore.error")} actionLabel={t("jobDetails.retry")} onAction={() => refetch()} />
             ) : (
               <EmptyState icon={Building2} message={t("myJobs.noJobs")} actionLabel={t("myJobs.postJob")} onAction={handlePostJob} />

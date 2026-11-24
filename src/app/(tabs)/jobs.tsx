@@ -155,7 +155,7 @@ export default function ExploreScreen() {
           />
         )}
         ListEmptyComponent={
-          isLoading ? null : isError ? (
+          isLoading ? undefined : isError ? (
             <EmptyState icon={WifiOff} tone="danger" message={t("explore.error")} actionLabel={t("jobDetails.retry")} onAction={() => refetch()} />
           ) : (
             <EmptyState

@@ -70,7 +70,7 @@ export default function ActivityScreen() {
           data={applications ?? []}
           keyExtractor={(a) => a.id}
           contentContainerStyle={listPadding}
-          ListHeaderComponent={appsLoading ? <SkeletonList /> : null}
+          ListHeaderComponent={appsLoading ? <SkeletonList /> : undefined}
           renderItem={({ item }) => (
             <ApplicationCard
               application={item}
@@ -79,7 +79,7 @@ export default function ActivityScreen() {
             />
           )}
           ListEmptyComponent={
-            appsLoading ? null : (
+            appsLoading ? undefined : (
               <EmptyState icon={ListChecks} message={t("activity.emptyApplications")} actionLabel={t("activity.exploreJobs")} onAction={goExplore} />
             )
           }
@@ -89,7 +89,7 @@ export default function ActivityScreen() {
           data={savedJobs ?? []}
           keyExtractor={(s) => s.jobId}
           contentContainerStyle={listPadding}
-          ListHeaderComponent={savedLoading ? <SkeletonList /> : null}
+          ListHeaderComponent={savedLoading ? <SkeletonList /> : undefined}
           renderItem={({ item }) => (
             <JobCard
               job={{
@@ -113,7 +113,7 @@ export default function ActivityScreen() {
             />
           )}
           ListEmptyComponent={
-            savedLoading ? null : (
+            savedLoading ? undefined : (
               <EmptyState icon={Bookmark} message={t("activity.emptySaved")} actionLabel={t("activity.exploreJobs")} onAction={goExplore} />
             )
           }

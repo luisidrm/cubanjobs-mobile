@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, type ComponentRef } from "react";
 import { Text as RNText, type TextProps as RNTextProps, type TextStyle } from "react-native";
 import { fontFamily, typography, type Palette, type TextVariant } from "../../theme/tokens";
 import { useTokens } from "../../theme/use-tokens";
@@ -35,7 +35,7 @@ function toneColor(p: Palette, tone: TextTone): string {
 }
 
 /** Typography primitive: every on-screen string should go through this. */
-export const Text = forwardRef<RNText, TextProps>(function Text(
+export const Text = forwardRef<ComponentRef<typeof RNText>, TextProps>(function Text(
   { variant = "body", tone = "primary", weight, mono, tabular, style, children, ...rest },
   ref,
 ) {

@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react-native";
-import { forwardRef, useState, type ReactNode } from "react";
+import { forwardRef, useState, type ComponentRef, type ReactNode } from "react";
 import { Platform, TextInput, View, type StyleProp, type TextInputProps, type ViewStyle } from "react-native";
 import { fontFamily, radius } from "../../theme/tokens";
 import { useTokens } from "../../theme/use-tokens";
@@ -18,7 +18,7 @@ export interface TextFieldProps extends Omit<TextInputProps, "style" | "onChange
 }
 
 /** Labeled input: label above, 48pt tall (multiline grows), accent focus ring. */
-export const TextField = forwardRef<TextInput, TextFieldProps>(function TextField(
+export const TextField = forwardRef<ComponentRef<typeof TextInput>, TextFieldProps>(function TextField(
   { label, icon, trailing, hint, error, multiline, rows = 3, editable = true, containerStyle, onFocus, onBlur, ...rest },
   ref,
 ) {

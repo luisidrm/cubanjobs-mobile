@@ -48,7 +48,6 @@ export default function TabsLayout() {
 
   return (
     <Tabs
-      initialRouteName={isAdmin ? "admin" : isEmployer ? "my-jobs" : "jobs"}
       tabBar={(props) => <FloatingTabBar {...(props as unknown as FloatingTabBarProps)} icons={TAB_ICONS} />}
       screenOptions={{ headerShown: false }}
     >
