@@ -13,11 +13,11 @@ import { StatusBadge } from "../components/application/StatusBadge";
 import { Button, Card, NavBar, Screen, Text, TextField, CardSkeletons, EmptyState } from "../components/ds";
 import { FilterChip } from "../components/tabs/FilterChip";
 import { useTokens } from "../theme/use-tokens";
-import type { ApplicationWithApplicant, EmployerSettableStatus } from "../types/application";
+import type { ApplicationStatus, ApplicationWithApplicant, EmployerSettableStatus } from "../types/application";
 import { openExternal } from "../lib/openExternal";
 import { whatsappChatUrl } from "../lib/whatsapp";
 
-const SETTABLE_STATUSES: EmployerSettableStatus[] = ["pending", "reviewed", "accepted", "rejected"];
+const SETTABLE_STATUSES: EmployerSettableStatus[] = ["pending", "reviewed", "interview", "accepted", "rejected"];
 
 function ApplicantCard({ application }: { application: ApplicationWithApplicant }) {
   const { t } = useTranslation();
@@ -92,7 +92,7 @@ function ApplicantCard({ application }: { application: ApplicationWithApplicant 
         ) : null}
       </View>
 
-      <View>
+      <View style={application.status === "withdrawn" ? { display: "none" } : undefined}>
         <Text variant="caps" tone="tertiary" style={{ marginBottom: 8 }}>
           {t("jobApplicants.changeStatus")}
         </Text>
@@ -134,6 +134,11 @@ export default function JobApplicantsScreen() {
   const { t } = useTranslation();
   const { jobId } = useLocalSearchParams<{ jobId: string }>();
   const { data: applications, isLoading, isError, refetch } = useGetApplicationsForJobQuery(jobId);
+  // Pipeline view: one stage at a time, with a count on each.
+  const [stage, setStage] = useState<ApplicationStatus | "all">("all");
+  const all = applications ?? [];
+  const visible = all.filter((a) => stage === "all" || a.status === stage);
+  const countOf = (s: ApplicationStatus) => all.filter((a) => a.status === s).length;
 
   return (
     <Screen safeTop={false}>
@@ -151,12 +156,22 @@ export default function JobApplicantsScreen() {
 
       {!isLoading && !isError ? (
         <FlatList showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
-          data={applications ?? []}
+          data={visible}
           keyboardShouldPersistTaps="handled"
           keyExtractor={(a) => a.id}
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32 }}
           renderItem={({ item }) => <ApplicantCard application={item} />}
-          ListEmptyComponent={<EmptyState icon={Users} message={t("jobApplicants.empty")} />}
+          ListHeaderComponent={
+            all.length > 0 ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
+                <FilterChip label={`${t("jobApplicants.all")} (${all.length})`} active={stage === "all"} onPress={() => setStage("all")} />
+                {SETTABLE_STATUSES.map((s) => (
+                  <FilterChip key={s} label={`${t(`applicationStatus.${s}`)} (${countOf(s)})`} active={stage === s} onPress={() => setStage(s)} />
+                ))}
+              </ScrollView>
+            ) : undefined
+          }
+          ListEmptyComponent={<EmptyState icon={Users} message={all.length > 0 ? t("jobApplicants.emptyStage") : t("jobApplicants.empty")} />}
         />
       ) : null}
     </Screen>

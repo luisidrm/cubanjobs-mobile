@@ -238,6 +238,7 @@
   "applicationStatus": {
     "pending": "Pending",
     "reviewed": "Reviewed",
+    "interview": "Interview",
     "accepted": "Accepted",
     "rejected": "Rejected",
     "withdrawn": "Withdrawn"
@@ -357,7 +358,9 @@
     "changeStatus": "Change status",
     "notes": "Private notes",
     "notesPlaceholder": "Notes only you can see",
-    "saveNotes": "Save notes"
+    "saveNotes": "Save notes",
+    "all": "All",
+    "emptyStage": "No applicants in this stage."
   },
   "applicantProfile": {
     "title": "Applicant Profile",

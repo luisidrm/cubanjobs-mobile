@@ -20,7 +20,7 @@ export function ApplicationCard({ application, onPress, onWithdraw }: Props) {
     month: "short",
     day: "numeric",
   });
-  const canWithdraw = !!onWithdraw && (application.status === "pending" || application.status === "reviewed");
+  const canWithdraw = !!onWithdraw && (application.status === "pending" || application.status === "reviewed" || application.status === "interview");
 
   return (
     <Card onPress={onPress} accessibilityLabel={application.job.title} padding={0} style={{ marginBottom: 14 }}>

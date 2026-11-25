@@ -7,6 +7,7 @@ import { Badge, type BadgeTone } from "../ds";
 const TONE: Record<ApplicationStatus, BadgeTone> = {
   pending: "warning",
   reviewed: "info",
+  interview: "accent",
   accepted: "success",
   rejected: "danger",
   withdrawn: "neutral",

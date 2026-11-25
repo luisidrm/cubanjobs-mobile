@@ -238,6 +238,7 @@
   "applicationStatus": {
     "pending": "Pendiente",
     "reviewed": "Revisada",
+    "interview": "Entrevista",
     "accepted": "Aceptada",
     "rejected": "Rechazada",
     "withdrawn": "Retirada"
@@ -357,7 +358,9 @@
     "changeStatus": "Cambiar estado",
     "notes": "Notas privadas",
     "notesPlaceholder": "Notas que solo tú puedes ver",
-    "saveNotes": "Guardar notas"
+    "saveNotes": "Guardar notas",
+    "all": "Todos",
+    "emptyStage": "No hay postulantes en esta etapa."
   },
   "applicantProfile": {
     "title": "Perfil del postulante",
