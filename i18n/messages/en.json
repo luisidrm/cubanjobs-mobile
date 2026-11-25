@@ -344,7 +344,8 @@
     "changeCover": "Change image",
     "removeCover": "Remove",
     "coverError": "Couldn't upload the image.",
-    "coverSavedAfter": "You can add a cover image after saving."
+    "coverSavedAfter": "You can add a cover image after saving.",
+    "upfrontWarning": "Your posting seems to ask applicants for money up front. That is not allowed on Brújula: an admin will review it and may take it down."
   },
   "jobApplicants": {
     "title": "Applicants",
@@ -846,6 +847,7 @@
     "confirmTakedown": "Confirm: remove now",
     "resolved": "Report resolved",
     "resolveError": "Could not resolve the report.",
-    "loadError": "We could not load the reports."
+    "loadError": "We could not load the reports.",
+    "system": "Flagged automatically"
   }
 }

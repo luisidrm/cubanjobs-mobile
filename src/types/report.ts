@@ -23,7 +23,8 @@ export interface AdminReportRow {
   createdAt: string;
   resolvedAt: string | null;
   resolutionNote: string | null;
-  reporterEmail: string;
+  /** Null for reports the system filed itself. */
+  reporterEmail: string | null;
   target: { title: string; exists: boolean; extra?: string };
 }
 

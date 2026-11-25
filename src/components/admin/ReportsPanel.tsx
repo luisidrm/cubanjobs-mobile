@@ -75,7 +75,7 @@ export function ReportsPanel() {
             </Text>
             {r.note ? <Text variant="footnote">{r.note}</Text> : null}
             <Text variant="footnote" tone="tertiary">
-              {t("adminReports.reportedBy", { email: r.reporterEmail })} · {date}
+              {r.reporterEmail ? t("adminReports.reportedBy", { email: r.reporterEmail }) : t("adminReports.system")} · {date}
             </Text>
             {r.status === "open" ? (
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>

@@ -344,7 +344,8 @@
     "changeCover": "Cambiar imagen",
     "removeCover": "Quitar",
     "coverError": "No se pudo subir la imagen.",
-    "coverSavedAfter": "Podrás añadir una imagen de portada después de guardar."
+    "coverSavedAfter": "Podrás añadir una imagen de portada después de guardar.",
+    "upfrontWarning": "Tu oferta parece pedir dinero por adelantado a quien aplica. Eso no está permitido en Brújula: un administrador la revisará y puede retirarla."
   },
   "jobApplicants": {
     "title": "Postulantes",
@@ -846,6 +847,7 @@
     "confirmTakedown": "Confirmar: retirar ahora",
     "resolved": "Reporte resuelto",
     "resolveError": "No se pudo resolver el reporte.",
-    "loadError": "No pudimos cargar los reportes."
+    "loadError": "No pudimos cargar los reportes.",
+    "system": "Marcado automáticamente"
   }
 }

@@ -18,7 +18,7 @@ import { AlertDialog, Button, IconButton, List, ListRow, NavBar, Screen, Segment
 import { FilterChip } from "../components/tabs/FilterChip";
 import { getErrorMessage } from "../lib/errors";
 import { appendFilePart } from "../lib/upload";
-import { showErrorToast } from "../lib/toast";
+import { showErrorToast, showInfoToast } from "../lib/toast";
 import { useTokens } from "../theme/use-tokens";
 import type { Currency, JobStatus, JobType } from "../types/job";
 import { goBack } from "../lib/navigation";
@@ -155,13 +155,16 @@ export default function JobFormScreen() {
     };
 
     try {
+      let warnings: string[] = [];
       if (isEdit && id) {
-        await updateJob({ id, ...payload }).unwrap();
+        warnings = (await updateJob({ id, ...payload }).unwrap()).warnings;
         await syncCover(id);
       } else {
         const created = await createJob({ companyId: company.id, ...payload }).unwrap();
+        warnings = created.warnings;
         await syncCover(created.id);
       }
+      if (warnings.includes("upfront_payment")) showInfoToast(t("jobForm.upfrontWarning"), 10000);
       goBack(router);
     } catch (err) {
       showErrorToast(getErrorMessage(err, t("jobForm.saveError")));

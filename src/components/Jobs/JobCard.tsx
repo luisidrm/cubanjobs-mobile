@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { Bookmark, BookmarkCheck, MapPin } from "lucide-react-native";
+import { BadgeCheck, Bookmark, BookmarkCheck, MapPin } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { useTokens } from "../../theme/use-tokens";
@@ -45,9 +45,16 @@ export function JobCard({ job, onPress, isSaved, onToggleSave }: Props) {
           <Text weight="semibold" numberOfLines={1} style={{ fontSize: 16, lineHeight: 21 }}>
             {job.title}
           </Text>
-          <Text variant="subhead" tone="secondary" numberOfLines={1}>
-            {job.company?.name ?? ""}
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+            <Text variant="subhead" tone="secondary" numberOfLines={1} style={{ flexShrink: 1 }}>
+              {job.company?.name ?? ""}
+            </Text>
+            {job.company?.isVerified ? (
+              <View accessible accessibilityLabel={t("explore.verifiedCompany")}>
+                <Icon icon={BadgeCheck} size={16} color={p.accent} />
+              </View>
+            ) : null}
+          </View>
         </View>
 
         {onToggleSave ? (

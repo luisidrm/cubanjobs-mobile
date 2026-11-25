@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import type { TFunction } from "i18next";
-import { Bookmark, BookmarkCheck, Check, ChevronRight, Clock, Globe, MapPin, MessageCircle, Send, Share2, WifiOff } from "lucide-react-native";
+import { BadgeCheck, Bookmark, BookmarkCheck, Check, ChevronRight, Clock, Globe, MapPin, MessageCircle, Send, Share2, WifiOff } from "lucide-react-native";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
@@ -176,6 +176,11 @@ export default function JobDetailsScreen() {
                   <Text weight="semibold" tone="accent" style={{ fontSize: 17, lineHeight: 22 }}>
                     {job.company.name}
                   </Text>
+                  {job.company.isVerified ? (
+                    <View accessible accessibilityLabel={t("explore.verifiedCompany")}>
+                      <Icon icon={BadgeCheck} size={20} color={p.accent} />
+                    </View>
+                  ) : null}
                   <Icon icon={ChevronRight} size={18} color={p.accentText} />
                 </PressableScale>
               ) : null}

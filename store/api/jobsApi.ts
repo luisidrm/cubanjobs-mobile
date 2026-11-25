@@ -32,6 +32,9 @@ export interface CreateJobInput {
 
 export type UpdateJobInput = Partial<Omit<CreateJobInput, "companyId">>;
 
+/** A saved job plus the posting warnings the API raised (e.g. "upfront_payment"). */
+export type SavedJobResult = EmployerJob & { warnings: string[] };
+
 export const jobsApi = createApi({
   reducerPath: "jobsApi",
   baseQuery: baseQuery, // Replace with your actual API base URL
@@ -68,15 +71,15 @@ export const jobsApi = createApi({
           : [{ type: "Job", id: "MY_LIST" }],
     }),
 
-    createJob: builder.mutation<EmployerJob, CreateJobInput>({
+    createJob: builder.mutation<SavedJobResult, CreateJobInput>({
       query: (body) => ({ url: "/api/v1/jobs", method: "POST", body }),
-      transformResponse: (response: ApiResponse<EmployerJob>) => response.data,
+      transformResponse: (response: ApiResponse<EmployerJob> & { warnings?: string[] }) => ({ ...response.data, warnings: response.warnings ?? [] }),
       invalidatesTags: [{ type: "Job", id: "MY_LIST" }],
     }),
 
-    updateJob: builder.mutation<EmployerJob, { id: string } & UpdateJobInput>({
+    updateJob: builder.mutation<SavedJobResult, { id: string } & UpdateJobInput>({
       query: ({ id, ...body }) => ({ url: `/api/v1/jobs/${id}`, method: "PATCH", body }),
-      transformResponse: (response: ApiResponse<EmployerJob>) => response.data,
+      transformResponse: (response: ApiResponse<EmployerJob> & { warnings?: string[] }) => ({ ...response.data, warnings: response.warnings ?? [] }),
       invalidatesTags: (result, error, { id }) => [{ type: "Job", id }, { type: "Job", id: "MY_LIST" }],
     }),
 

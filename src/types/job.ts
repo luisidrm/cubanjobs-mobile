@@ -6,6 +6,8 @@ export interface JobCompany {
   id: string;
   name: string;
   logoUrl: string | null;
+  /** Checked by our team; shown as a badge next to the company name. */
+  isVerified?: boolean;
 }
 
 export interface Job {
